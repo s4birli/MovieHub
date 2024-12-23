@@ -38,7 +38,7 @@ router.post(
 
             const payload = { user: { id: user.id } };
             const accessToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
-                expiresIn: "15m",
+                expiresIn: "7d",
             });
 
             const refreshToken = jwt.sign(
