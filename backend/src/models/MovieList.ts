@@ -1,81 +1,59 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose from "mongoose";
 
-export interface IMovieList extends Document {
-    user: mongoose.Schema.Types.ObjectId;
-    imdbID: string;
-    title: string;
-    year?: string;
-    endYear?: string;
-    category: string;
-    genre?: string[];
-    rating?: number;
-    voteCount?: number;
-    actors?: string[];
-    director?: string[];
-    certificate?: string;
-    poster?: string;
-    plot?: string;
-    watched?: boolean;
-    favorite?: boolean;
-}
-
-const MovieListSchema: Schema = new Schema({
+const MovieListSchema = new mongoose.Schema({
     user: {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
-    imdbID: {
-        type: String,
-        required: true,
-        unique: true,
+    tmdbId: {
+        type: Number,
+        required: true
     },
     title: {
         type: String,
-        required: true,
+        required: true
     },
-    year: {
+    originalTitle: String,
+    mediaType: {
         type: String,
+        enum: ['movie', 'tv'],
+        required: true
     },
-    endYear: {
+    year: String,
+    endYear: String,
+    posterPath: String,
+    backdropPath: String,
+    overview: String,
+    voteAverage: Number,
+    voteCount: Number,
+    popularity: Number,
+    originalLanguage: String,
+    status: {
         type: String,
+        enum: ['watching', 'completed', 'plan-to-watch'],
+        default: 'plan-to-watch'
     },
-    category: {
-        type: String,
-        required: true,
-    },
-    genre: {
-        type: [String],
-    },
-    rating: {
-        type: Number,
-    },
-    voteCount: {
-        type: Number,
-    },
-    actors: {
-        type: [String],
-    },
-    director: {
-        type: [String],
-    },
-    certificate: {
-        type: String,
-    },
-    poster: {
-        type: String,
-    },
-    plot: {
-        type: String,
-    },
-    watched: {
+    isActive: {
         type: Boolean,
-        default: false,
+        default: true
     },
-    favorite: {
-        type: Boolean,
-        default: false,
+    notes: String,
+    createdAt: {
+        type: Date,
+        default: Date.now
     },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    },
+    genres: {
+        type: [String],
+        default: []
+    }
 });
 
-export default mongoose.model<IMovieList>("MovieList", MovieListSchema, "MovieList"); 
+// Aynı kullanıcı için aynı tmdbId'ye sahip film/dizi eklenemez
+MovieListSchema.index({ user: 1, tmdbId: 1 }, { unique: true });
+
+export default mongoose.model('MovieList', MovieListSchema); 
