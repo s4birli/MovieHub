@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import axios from "axios";
 import MovieList from "../models/MovieList";
-import auth from "../middleware/auth";
 
 interface AuthRequest extends Request {
     user?: { id: string };
@@ -51,7 +50,7 @@ router.get("/search", async (req: Request, res: Response): Promise<void> => {
 });
 
 // Kullanıcının film listesini getir
-router.get("/list", auth, async (req: AuthRequest, res: Response) => {
+router.get("/list", async (req: AuthRequest, res: Response) => {
     try {
         const movies = await MovieList.find({ user: req.user?.id });
         res.json(movies);
@@ -61,7 +60,7 @@ router.get("/list", auth, async (req: AuthRequest, res: Response) => {
 });
 
 // Filme listesine film ekle
-router.post("/list", auth, async (req: AuthRequest, res: Response) => {
+router.post("/list", async (req: AuthRequest, res: Response) => {
     try {
         const movieData = {
             ...req.body,
@@ -86,7 +85,7 @@ router.post("/list", auth, async (req: AuthRequest, res: Response) => {
 });
 
 // Film güncelle (izlendi/favori durumu vb.)
-router.put("/list/:id", auth, async (req: AuthRequest, res: Response) => {
+router.put("/list/:id", async (req: AuthRequest, res: Response) => {
     try {
         const movie = await MovieList.findOneAndUpdate(
             { _id: req.params.id, user: req.user?.id },
@@ -105,7 +104,7 @@ router.put("/list/:id", auth, async (req: AuthRequest, res: Response) => {
 });
 
 // Filmi listeden kaldır
-router.delete("/list/:id", auth, async (req: AuthRequest, res: Response) => {
+router.delete("/list/:id", async (req: AuthRequest, res: Response) => {
     try {
         const movie = await MovieList.findOneAndDelete({
             _id: req.params.id,
