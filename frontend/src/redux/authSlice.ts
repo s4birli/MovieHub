@@ -60,6 +60,7 @@ export const loginUser = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
+
       const response = await axios.post("/api/users/", credentials);
       console.log(response);
       return response.data;
