@@ -39,7 +39,7 @@ export const searchMovies = createAsyncThunk(
   "movie/searchMovies",
   async (query: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get("/api/search", { params: { query } });
+      const response = await axios.get("/api/movies/search", { params: { query } });
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response.data.msg || "Search failed");
