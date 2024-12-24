@@ -78,4 +78,4 @@ const MovieListSchema: Schema = new Schema({
     },
 });
 
-export default mongoose.model<IMovieList>("MovieList", MovieListSchema); 
+export default mongoose.model<IMovieList>("MovieList", MovieListSchema, "MovieList"); 
