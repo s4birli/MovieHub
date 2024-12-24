@@ -61,41 +61,39 @@ const MovieList = () => {
   }, [movies, searchQuery, selectedGenre, selectedCategory, sortBy]);
 
   const getMovies = async () => {
-    // Fetch movies from backend and set to redux state
     const movieList = (await dispatch(fetchMovies())).payload as [];
-    setMovies(movieList);
+    dispatch(setMovies(movieList));
     if (movieList.length > 0) {
       const genresList = [...new Set(movieList.map((movie: { genre: any; }) => movie.genre))];
       const categoriesList = [
         ...new Set(movieList.map((movie: { category: string }) => movie.category)),
       ];
-      if(genresList && categoriesList) {
+      if (genresList && categoriesList) {
         setGenres(genresList as []);
-      setCategories(categoriesList as []);
+        setCategories(categoriesList as []);
       }
     }
   };
 
   const filterMovies = async () => {
-    debugger;
-    if(movies.length>0){
+    if (movies.length > 0) {
       let filtered = movies.filter((movie) =>
         movie.title.toLowerCase().includes(searchQuery.toLowerCase())
       );
-  
+
       if (selectedGenre) {
         filtered = filtered.filter((movie) => movie.genre === selectedGenre);
       }
-  
+
       if (selectedCategory) {
         filtered = filtered.filter(
           (movie) => movie.category === selectedCategory
         );
       }
-  
+
       const sortField = sortBy.startsWith("-") ? sortBy.slice(1) : sortBy;
       const sortOrder = sortBy.startsWith("-") ? -1 : 1;
-  
+
       filtered.sort((a, b) => {
         if (sortField === "title") {
           return sortOrder * a.title.localeCompare(b.title);
@@ -107,11 +105,11 @@ const MovieList = () => {
             : 1)
         );
       });
-  
+
       dispatch(setFilteredMovies(filtered));
+    } else {
+      dispatch(setFilteredMovies([]));
     }
-    setFilteredMovies([])
-    
   };
 
   const handleToggleWatched = (id: number) => {
@@ -126,7 +124,7 @@ const MovieList = () => {
     dispatch(setMovies(updatedMovies));
   };
 
-  
+
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -149,11 +147,10 @@ const MovieList = () => {
             lg:w-1/4
             fixed lg:relative top-0 left-0 h-full lg:h-auto w-3/4 lg:w-auto
             transform lg:transform-none
-            ${
-              isMobileFilterOpen
+            ${isMobileFilterOpen
                 ? "translate-x-0"
                 : "-translate-x-full lg:translate-x-0"
-            }
+              }
             transition-transform duration-300 ease-in-out
             z-30 lg:z-auto
             bg-gray-100 lg:bg-transparent
@@ -194,11 +191,11 @@ const MovieList = () => {
             />
           )}
 
-          {/* <div className="lg:w-3/4">
+          <div className="lg:w-3/4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredMovies.map((movie: any) => (
+              {filteredMovies.map((movie) => (
                 <MovieCard
-                  key={movie.id}
+                  key={`movie-${movie.id}`}
                   movie={movie}
                   onToggleWatched={handleToggleWatched}
                   onDelete={handleDelete}
@@ -211,7 +208,7 @@ const MovieList = () => {
                 <p className="text-gray-500">Film bulunamadı.</p>
               </div>
             )}
-          </div> */}
+          </div>
         </div>
       </div>
     </div>

@@ -20,7 +20,6 @@ const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
 
   const user = useAppSelector((state) => state.auth.user);
   const searchResults = useAppSelector((state) => state.movie.searchResults);

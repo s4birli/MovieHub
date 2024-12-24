@@ -34,16 +34,17 @@ const MovieCard = ({ movie, onToggleWatched, onDelete }: MovieCardProps) => {
         </div>
         <div className="flex items-center gap-1 mb-4">
           <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-          <span className="text-sm font-medium">{movie.rating.toFixed(1)}</span>
+          <span className="text-sm font-medium">
+            {movie.rating ? movie.rating.toFixed(1) : "0.0"}
+          </span>
         </div>
         <div className="flex justify-between gap-2">
           <button
             onClick={() => onToggleWatched(movie.id)}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-md ${
-              movie.watched
-                ? "bg-green-100 text-green-700"
-                : "bg-gray-100 text-gray-700"
-            } hover:opacity-80 transition-opacity`}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-md ${movie.watched
+              ? "bg-green-100 text-green-700"
+              : "bg-gray-100 text-gray-700"
+              } hover:opacity-80 transition-opacity`}
           >
             <CheckCircle className="w-4 h-4" />
             {movie.watched ? "İzlendi" : "İzlemedim"}

@@ -24,9 +24,8 @@ export const fetchMovies = createAsyncThunk(
   "movie/fetchMovies",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("/api/movie");
-      console.log(response.data);
-      return response.data as [];
+      const response = await axios.get("/api/movies/list");
+      return response.data;
     } catch (error: any) {
       return rejectWithValue(
         error.response.data.msg || "Failed to fetch movies"
@@ -35,23 +34,11 @@ export const fetchMovies = createAsyncThunk(
   }
 );
 
-export const searchMovies = createAsyncThunk(
-  "movie/searchMovies",
-  async (query: string, { rejectWithValue }) => {
-    try {
-      const response = await axios.get("/api/movies/search", { params: { query } });
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response.data.msg || "Search failed");
-    }
-  }
-);
-
 export const addMovie = createAsyncThunk(
   "movie/addMovie",
   async (movieData: any, { rejectWithValue }) => {
     try {
-      const response = await axios.post("/api/movie", movieData);
+      const response = await axios.post("/api/movies/list", movieData);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response.data.msg || "Failed to add movie");
@@ -66,7 +53,7 @@ export const updateMovieStatus = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await axios.put(`/api/movie/${data.imdbID}`, {
+      const response = await axios.put(`/api/movies/list/${data.imdbID}`, {
         watched: data.watched,
         favorite: data.favorite,
       });
@@ -83,12 +70,26 @@ export const deleteMovie = createAsyncThunk(
   "movie/deleteMovie",
   async (imdbID: string, { rejectWithValue }) => {
     try {
-      await axios.delete(`/api/movie/${imdbID}`);
+      await axios.delete(`/api/movies/list/${imdbID}`);
       return imdbID;
     } catch (error: any) {
       return rejectWithValue(
         error.response.data.msg || "Failed to delete movie"
       );
+    }
+  }
+);
+
+export const searchMovies = createAsyncThunk(
+  "movie/searchMovies",
+  async (query: string, { rejectWithValue }) => {
+    try {
+      const response = await axios.get("/api/movies/search", {
+        params: { query }
+      });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response.data.msg || "Search failed");
     }
   }
 );
@@ -118,29 +119,16 @@ const movieSlice = createSlice({
       .addCase(fetchMovies.fulfilled, (state, action) => {
         state.loading = false;
         state.movies = action.payload;
-        state.filteredMovies = action.payload; // Set filteredMovies
+        state.filteredMovies = action.payload;
       })
       .addCase(fetchMovies.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-      // Search Movies
-      .addCase(searchMovies.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(searchMovies.fulfilled, (state, action) => {
-        state.loading = false;
-        state.searchResults = action.payload.results;
-      })
-      .addCase(searchMovies.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
       // Add Movie
       .addCase(addMovie.fulfilled, (state, action) => {
         state.movies.push(action.payload);
-        state.filteredMovies.push(action.payload); // Update filteredMovies
+        state.filteredMovies.push(action.payload);
       })
       // Update Movie Status
       .addCase(updateMovieStatus.fulfilled, (state, action) => {
@@ -149,7 +137,6 @@ const movieSlice = createSlice({
         );
         if (index !== -1) {
           state.movies[index] = action.payload;
-          // Also update in filteredMovies
           const filteredIndex = state.filteredMovies.findIndex(
             (movie) => movie.imdbID === action.payload.imdbID
           );
@@ -166,6 +153,19 @@ const movieSlice = createSlice({
         state.filteredMovies = state.filteredMovies.filter(
           (movie) => movie.imdbID !== action.payload
         );
+      })
+      // Search Movies
+      .addCase(searchMovies.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(searchMovies.fulfilled, (state, action) => {
+        state.loading = false;
+        state.searchResults = action.payload;
+      })
+      .addCase(searchMovies.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });
