@@ -15,7 +15,6 @@ import { useNavigate } from "react-router-dom";
 import noImage from "../assets/images/no-image.png";
 import { debounce } from "lodash";
 import { searchMovies, addMovie } from "../redux/movieSlice";
-import { TMDB_GENRES } from "../models/TMDBTypes";
 
 const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);

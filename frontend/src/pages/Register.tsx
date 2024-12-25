@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Mail, Lock, User, ArrowLeft, Camera } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { registerUser } from "../redux/authSlice";
 import { useNavigate } from "react-router-dom";
@@ -15,12 +15,26 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [avatar, setAvatar] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/login");
     }
   }, [isAuthenticated]);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatar(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +50,15 @@ const Register = () => {
       return;
     }
 
-    dispatch(registerUser({ name, email, password }));
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('password', password);
+    if (avatar) {
+      formData.append('avatar', avatar);
+    }
+
+    dispatch(registerUser(formData));
     navigate("/login");
   };
 
@@ -58,6 +80,37 @@ const Register = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200">
+                  {avatarPreview ? (
+                    <img
+                      src={avatarPreview}
+                      alt="Avatar preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <User className="w-12 h-12" />
+                    </div>
+                  )}
+                </div>
+                <label
+                  htmlFor="avatar-upload"
+                  className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-2 cursor-pointer hover:bg-blue-700"
+                >
+                  <Camera className="w-4 h-4 text-white" />
+                </label>
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+              </div>
+            </div>
+
             <div>
               <label
                 htmlFor="name"

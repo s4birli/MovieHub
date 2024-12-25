@@ -7,7 +7,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  avatar?: string;
+  avatar: string | null;
 }
 
 interface AuthState {
@@ -38,18 +38,14 @@ const initialState: AuthState = {
 
 // Async actions
 export const registerUser = createAsyncThunk(
-  "auth/registerUser",
-  async (
-    userData: { name: string; email: string; password: string },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await axios.post("/api/users/register", userData);
-      return response.data;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      return rejectWithValue(error.response.data.msg || "Registration failed");
-    }
+  "auth/register",
+  async (formData: FormData) => {
+    const response = await axios.post("/api/users/register", formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
   }
 );
 

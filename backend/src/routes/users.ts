@@ -5,8 +5,30 @@ import { check, validationResult } from "express-validator";
 import crypto from "crypto";
 import User, { IUser } from "../models/User";
 import sendEmail from "../utils/sendEmail";
+import multer from 'multer';
 
 const router = express.Router();
+
+// Multer configuration
+const storage = multer.memoryStorage();
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Not an image! Please upload an image.'));
+        }
+    }
+});
+
+// Helper function to convert Buffer to base64
+const bufferToBase64 = (buffer: Buffer, contentType: string) => {
+    return `data:${contentType};base64,${buffer.toString('base64')}`;
+};
 
 router.post(
     "/",
@@ -52,7 +74,9 @@ router.post(
                     id: user.id,
                     name: user.name,
                     email: user.email,
-                    avatar: user.avatar,
+                    avatar: user.avatar
+                        ? bufferToBase64(user.avatar.data, user.avatar.contentType)
+                        : null,
                 },
                 accessToken,
                 refreshToken,
@@ -67,13 +91,11 @@ router.post(
 
 router.post(
     "/register",
+    upload.single('avatar'),
     [
         check("name", "Name is required").not().isEmpty(),
         check("email", "Please include a valid Email").isEmail(),
-        check(
-            "password",
-            "Please enter a password with 6 or more characters"
-        ).isLength({ min: 6 }),
+        check("password", "Please enter a password with 6 or more characters").isLength({ min: 6 }),
     ],
     async (req: Request, res: Response): Promise<void> => {
         const errors = validationResult(req);
@@ -91,7 +113,16 @@ router.post(
                 return;
             }
 
-            user = new User({ name, email, password });
+            user = new User({
+                name,
+                email,
+                password,
+                avatar: req.file ? {
+                    data: req.file.buffer,
+                    contentType: req.file.mimetype
+                } : undefined
+            });
+
             const salt = await bcrypt.genSalt(10);
             user.password = await bcrypt.hash(password, salt);
 
@@ -107,7 +138,18 @@ router.post(
                 { expiresIn: "7d" }
             );
 
-            res.json({ accessToken, refreshToken });
+            res.json({
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    avatar: user.avatar
+                        ? bufferToBase64(user.avatar.data, user.avatar.contentType)
+                        : null,
+                },
+                accessToken,
+                refreshToken
+            });
         } catch (err) {
             console.error(err);
             res.status(500).send("Server error");
