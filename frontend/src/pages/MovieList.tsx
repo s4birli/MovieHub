@@ -1,144 +1,88 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { setMovies, setFilteredMovies, fetchMovies } from "../redux/movieSlice";
+import { fetchMovies, fetchFilterOptions, updateMovieStatus, deleteMovie } from "../redux/movieSlice";
 import MovieCard from "../components/MovieCard";
 import Sidebar from "../components/Sidebar";
 import { Menu } from "lucide-react";
 import Navbar from "../components/Navbar";
-import axios from "axios";
-
-const initialMovies = [
-  {
-    id: 1,
-    title: "Inception",
-    poster:
-      "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=500",
-    genre: "Bilim Kurgu",
-    category: "Hollywood",
-    rating: 8.8,
-    watched: false,
-  },
-  {
-    id: 2,
-    title: "The Shawshank Redemption",
-    poster:
-      "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=500",
-    genre: "Drama",
-    category: "Hollywood",
-    rating: 9.3,
-    watched: true,
-  },
-  {
-    id: 3,
-    title: "Pulp Fiction",
-    poster:
-      "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500",
-    genre: "Suç",
-    category: "Bağımsız",
-    rating: 8.9,
-    watched: false,
-  },
-];
+import { Movie } from '../types/movie';
 
 const MovieList = () => {
   const dispatch = useAppDispatch();
-  const { movies, filteredMovies } = useAppSelector((state) => state.movie);
-  const [selectedGenre, setSelectedGenre] = useState("");
+  const { movies, pagination, filterOptions } = useAppSelector((state) => state.movie);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [sortBy, setSortBy] = useState("title");
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [genres, setGenres] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("unwatched");
+  const [pageSize, setPageSize] = useState(10);
 
+  // Initial fetch for filter options
   useEffect(() => {
-    getMovies();
+    dispatch(fetchFilterOptions());
   }, [dispatch]);
 
+  // Fetch movies when filters change
   useEffect(() => {
-    filterMovies();
-  }, [movies, searchQuery, selectedGenre, selectedCategory, sortBy]);
+    const fetchData = async () => {
+      await dispatch(fetchMovies({
+        page: currentPage,
+        limit: pageSize,
+        genres: selectedGenres,
+        mediaType: selectedCategory,
+        status: selectedStatus || undefined,
+        sortBy,
+        sortOrder
+      }));
+    };
 
-  const getMovies = async () => {
-    const movieList = (await dispatch(fetchMovies())).payload as [];
-    dispatch(setMovies(movieList));
-    if (movieList.length > 0) {
-      const genresList = [...new Set(movieList.map((movie: { genre: any; }) => movie.genre))];
-      const categoriesList = [
-        ...new Set(movieList.map((movie: { category: string }) => movie.category)),
-      ];
-      if (genresList && categoriesList) {
-        setGenres(genresList as []);
-        setCategories(categoriesList as []);
-      }
-    }
-  };
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 300);
 
-  const filterMovies = async () => {
-    if (movies.length > 0) {
-      let filtered = movies.filter((movie) =>
-        movie.title.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+    return () => clearTimeout(timer);
+  }, [dispatch, currentPage, pageSize, selectedGenres, selectedCategory, selectedStatus, sortBy, sortOrder]);
 
-      if (selectedGenre) {
-        filtered = filtered.filter((movie) => movie.genre === selectedGenre);
-      }
-
-      if (selectedCategory) {
-        filtered = filtered.filter(
-          (movie) => movie.category === selectedCategory
-        );
-      }
-
-      const sortField = sortBy.startsWith("-") ? sortBy.slice(1) : sortBy;
-      const sortOrder = sortBy.startsWith("-") ? -1 : 1;
-
-      filtered.sort((a, b) => {
-        if (sortField === "title") {
-          return sortOrder * a.title.localeCompare(b.title);
-        }
-        return (
-          sortOrder *
-          (a[sortField as keyof typeof a] < b[sortField as keyof typeof b]
-            ? -1
-            : 1)
-        );
-      });
-
-      dispatch(setFilteredMovies(filtered));
+  const handleSortChange = (value: string) => {
+    if (value.startsWith('-')) {
+      setSortBy(value.slice(1));
+      setSortOrder('desc');
     } else {
-      dispatch(setFilteredMovies([]));
+      setSortBy(value);
+      setSortOrder('asc');
     }
   };
-
-  const handleToggleWatched = (id: number) => {
-    const updatedMovies = movies.map((movie) =>
-      movie.id === id ? { ...movie, watched: !movie.watched } : movie
-    );
-    dispatch(setMovies(updatedMovies));
-  };
-
-  const handleDelete = (id: number) => {
-    const updatedMovies = movies.filter((movie) => movie.id !== id);
-    dispatch(setMovies(updatedMovies));
-  };
-
-
 
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Film Listesi</h1>
-          <button
-            onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
-            className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm hover:bg-gray-50"
-          >
-            <Menu className="w-5 h-5" />
-            <span>Filtreler</span>
-          </button>
+          <h1 className="text-2xl font-bold text-gray-900">Movie List</h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
+              className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm hover:bg-gray-50"
+            >
+              <Menu className="w-5 h-5" />
+              <span>Filtreler</span>
+            </button>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value={10}>10 per page</option>
+              <option value={20}>20 per page</option>
+              <option value={100}>100 per page</option>
+            </select>
+          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
@@ -158,26 +102,32 @@ const MovieList = () => {
           `}
           >
             <Sidebar
-              genres={genres}
-              categories={categories}
-              selectedGenre={selectedGenre}
+              genres={filterOptions.genres}
+              categories={filterOptions.mediaTypes}
+              statusOptions={filterOptions.statusOptions}
+              selectedGenres={selectedGenres}
               selectedCategory={selectedCategory}
-              sortBy={sortBy}
+              selectedStatus={selectedStatus}
+              sortBy={`${sortOrder === 'desc' ? '-' : ''}${sortBy}`}
               searchQuery={searchQuery}
-              onGenreChange={(genre) => {
-                setSelectedGenre(genre);
+              onGenreChange={(genres) => {
+                setSelectedGenres(genres);
+                setCurrentPage(1);
                 setIsMobileFilterOpen(false);
               }}
               onCategoryChange={(category) => {
                 setSelectedCategory(category);
+                setCurrentPage(1);
                 setIsMobileFilterOpen(false);
               }}
-              onSortChange={(sort) => {
-                setSortBy(sort);
-                setIsMobileFilterOpen(false);
+              onStatusChange={(status) => {
+                setSelectedStatus(status);
+                setCurrentPage(1);
               }}
+              onSortChange={handleSortChange}
               onSearchChange={(query) => {
                 setSearchQuery(query);
+                setCurrentPage(1);
               }}
               onClose={() => setIsMobileFilterOpen(false)}
               isMobile={isMobileFilterOpen}
@@ -193,19 +143,66 @@ const MovieList = () => {
 
           <div className="lg:w-3/4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredMovies.map((movie) => (
-                <MovieCard
-                  key={`movie-${movie.id}`}
-                  movie={movie}
-                  onToggleWatched={handleToggleWatched}
-                  onDelete={handleDelete}
-                />
-              ))}
+              {movies.map((movie: Movie) => {
+                return (
+                  <MovieCard
+                    key={`movie-${movie.tmdbId}`}
+                    movie={movie}
+                    onStatusChange={(status) => {
+                      dispatch(updateMovieStatus({ id: movie.tmdbId, status }));
+                    }}
+                    onRemove={() => {
+                      dispatch(deleteMovie(movie.tmdbId));
+                    }}
+                  />
+                );
+              })}
             </div>
 
-            {filteredMovies.length === 0 && (
+            {movies.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-500">Film bulunamadı.</p>
+                <p className="text-gray-500">No movies found.</p>
+              </div>
+            )}
+
+            {pagination && pagination.totalPages > 1 && (
+              <div className="mt-6 flex justify-center">
+                <nav className="flex gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded ${currentPage === 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white hover:bg-gray-100"
+                      }`}
+                  >
+                    Previous
+                  </button>
+
+                  {Array.from({ length: pagination.totalPages }, (_, i) => (
+                    <button
+                      key={`page-${i + 1}`}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`px-3 py-1 rounded ${currentPage === i + 1
+                        ? "bg-blue-600 text-white"
+                        : "bg-white hover:bg-gray-100"
+                        }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
+                    disabled={currentPage === pagination.totalPages}
+                    className={`px-3 py-1 rounded ${currentPage === pagination.totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white hover:bg-gray-100"
+                      }`}
+                  >
+                    Next
+                  </button>
+                </nav>
               </div>
             )}
           </div>

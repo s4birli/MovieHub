@@ -31,8 +31,8 @@ const MovieListSchema = new mongoose.Schema({
     originalLanguage: String,
     status: {
         type: String,
-        enum: ['watching', 'completed', 'plan-to-watch'],
-        default: 'plan-to-watch'
+        enum: ['watched', 'unwatched'],
+        default: 'unwatched'
     },
     isActive: {
         type: Boolean,
@@ -56,4 +56,4 @@ const MovieListSchema = new mongoose.Schema({
 // Aynı kullanıcı için aynı tmdbId'ye sahip film/dizi eklenemez
 MovieListSchema.index({ user: 1, tmdbId: 1 }, { unique: true });
 
-export default mongoose.model('MovieList', MovieListSchema); 
+export default mongoose.model('MovieList', MovieListSchema, "MovieList"); 

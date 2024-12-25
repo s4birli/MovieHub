@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import noImage from "../assets/images/no-image.png";
 import { debounce } from "lodash";
 import { searchMovies, addMovie } from "../redux/movieSlice";
+import { TMDB_GENRES } from "../models/TMDBTypes";
 
 const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -59,8 +60,24 @@ const Navbar = () => {
   }, [searchRef]);
 
   const handleAddMovie = (movie: any) => {
-    dispatch(addMovie(movie));
-    // Optionally, provide feedback to the user
+    console.log(movie);
+    const movieData = {
+      tmdbId: movie.tmdbId,
+      title: movie.title,
+      originalTitle: movie.originalTitle,
+      year: movie.year?.split('-')[0],
+      mediaType: movie.mediaType,
+      posterPath: movie.posterPath ? `https://image.tmdb.org/t/p/w500${movie.posterPath}` : null,
+      backdropPath: movie.backdropPath ? `https://image.tmdb.org/t/p/original${movie.backdropPath}` : null,
+      overview: movie.overview,
+      voteAverage: movie.voteAverage,
+      voteCount: movie.voteCount,
+      popularity: movie.popularity,
+      originalLanguage: movie.originalLanguage,
+      genres: movie.genres,
+      status: 'unwatched'
+    };
+    dispatch(addMovie(movieData));
   };
 
   return (
@@ -87,7 +104,7 @@ const Navbar = () => {
               </div>
               <input
                 type="text"
-                placeholder="Film ara..."
+                placeholder="Search Movies..."
                 onChange={(e) => handleSearch(e.target.value)}
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
@@ -97,11 +114,11 @@ const Navbar = () => {
                   <ul className="max-h-60 overflow-y-auto">
                     {searchResults.map((movie: any) => (
                       <li
-                        key={movie.id}
+                        key={movie.tmdbId}
                         className="flex items-center p-2 hover:bg-gray-100"
                       >
                         <img
-                          src={movie.poster || noImage}
+                          src={movie.posterPath || noImage}
                           alt={movie.title}
                           className="w-12 h-16 object-cover rounded-md mr-3"
                         />
@@ -115,7 +132,7 @@ const Navbar = () => {
                           onClick={() => handleAddMovie(movie)}
                           className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                         >
-                          Ekle
+                          Add to List
                         </button>
                       </li>
                     ))}
@@ -200,7 +217,7 @@ const Navbar = () => {
               </div>
               <input
                 type="text"
-                placeholder="Film ara..."
+                placeholder="Search Movies..."
                 onChange={(e) => handleSearch(e.target.value)}
                 className="block w-full pl-10 pr-3 py-2 mb-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
