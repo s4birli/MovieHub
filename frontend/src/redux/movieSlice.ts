@@ -2,6 +2,7 @@
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "../api/axiosConfig";
+import { Movie } from '../types/movie';
 
 // Interface tanımlamaları
 interface FilterOption {
@@ -30,6 +31,9 @@ interface MovieState {
   pagination: Pagination | null;
   loading: boolean;
   error: string | null;
+  currentMovie: Movie | null;
+  currentMovieLoading: boolean;
+  currentMovieError: string | null;
 }
 
 const initialState: MovieState = {
@@ -44,6 +48,9 @@ const initialState: MovieState = {
   pagination: null,
   loading: false,
   error: null,
+  currentMovie: null,
+  currentMovieLoading: false,
+  currentMovieError: null,
 };
 
 // Async actions
@@ -91,21 +98,10 @@ export const addMovie = createAsyncThunk(
 );
 
 export const updateMovieStatus = createAsyncThunk(
-  "movie/updateMovieStatus",
-  async (
-    data: { id: number; status: 'watched' | 'unwatched' },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await axios.put(`/api/movies/list/${data.id}`, {
-        status: data.status
-      });
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(
-        error.response.data.msg || "Failed to update movie"
-      );
-    }
+  "movie/updateStatus",
+  async ({ movieId, status }: { movieId: number; status: 'watched' | 'unwatched' }) => {
+    const response = await axios.put(`/api/movies/list/${movieId}`, { status });
+    return response.data;
   }
 );
 
@@ -149,6 +145,15 @@ export const fetchFilterOptions = createAsyncThunk(
   }
 );
 
+// Film detaylarını getir
+export const fetchMovieDetails = createAsyncThunk(
+  "movie/fetchMovieDetails",
+  async (movieId: string) => {
+    const response = await axios.get(`/api/movies/details/${movieId}`);
+    return response.data;
+  }
+);
+
 // Slice
 const movieSlice = createSlice({
   name: "movie",
@@ -162,6 +167,11 @@ const movieSlice = createSlice({
     },
     setFilteredMovies(state, action) {
       state.filteredMovies = action.payload;
+    },
+    clearCurrentMovie: (state) => {
+      state.currentMovie = null;
+      state.currentMovieLoading = false;
+      state.currentMovieError = null;
     },
   },
   extraReducers: (builder) => {
@@ -192,17 +202,15 @@ const movieSlice = createSlice({
       })
       // Update Movie Status
       .addCase(updateMovieStatus.fulfilled, (state, action) => {
+        if (state.currentMovie && state.currentMovie.tmdbId === action.payload.tmdbId) {
+          state.currentMovie = action.payload;
+        }
+        // Ana listede de güncelle
         const index = state.movies.findIndex(
           (movie) => movie.tmdbId === action.payload.tmdbId
         );
         if (index !== -1) {
           state.movies[index] = action.payload;
-          const filteredIndex = state.filteredMovies.findIndex(
-            (movie) => movie.tmdbId === action.payload.tmdbId
-          );
-          if (filteredIndex !== -1) {
-            state.filteredMovies[filteredIndex] = action.payload;
-          }
         }
       })
       // Delete Movie
@@ -239,9 +247,22 @@ const movieSlice = createSlice({
       .addCase(fetchFilterOptions.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      // Fetch Movie Details
+      .addCase(fetchMovieDetails.pending, (state) => {
+        state.currentMovieLoading = true;
+        state.currentMovieError = null;
+      })
+      .addCase(fetchMovieDetails.fulfilled, (state, action) => {
+        state.currentMovieLoading = false;
+        state.currentMovie = action.payload;
+      })
+      .addCase(fetchMovieDetails.rejected, (state, action) => {
+        state.currentMovieLoading = false;
+        state.currentMovieError = action.error.message || "Film detayları alınamadı";
       });
   },
 });
 
-export const { setMovies, setFilteredMovies } = movieSlice.actions;
+export const { setMovies, setFilteredMovies, clearCurrentMovie } = movieSlice.actions;
 export default movieSlice.reducer;

@@ -149,7 +149,7 @@ const MovieList = () => {
                     key={`movie-${movie.tmdbId}`}
                     movie={movie}
                     onStatusChange={(status) => {
-                      dispatch(updateMovieStatus({ id: movie.tmdbId, status }));
+                      dispatch(updateMovieStatus({ movieId: movie.tmdbId, status }));
                     }}
                     onRemove={() => {
                       dispatch(deleteMovie(movie.tmdbId));

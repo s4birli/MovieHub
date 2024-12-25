@@ -1,4 +1,5 @@
 import { Star, Trash2, Circle, CircleCheckBig } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 import { Movie } from '../types/movie';
 
 interface MovieCardProps {
@@ -8,12 +9,23 @@ interface MovieCardProps {
 }
 
 const MovieCard = ({ movie, onStatusChange, onRemove }: MovieCardProps) => {
-  const toggleStatus = () => {
+  const navigate = useNavigate();
+
+  const toggleStatus = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when clicking buttons
     onStatusChange(movie.status === 'watched' ? 'unwatched' : 'watched');
   };
 
+  const handleRemove = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when clicking buttons
+    onRemove();
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden transition-transform hover:scale-[1.02]">
+    <div
+      onClick={() => navigate(`/movie/${movie.tmdbId}`)}
+      className="bg-white rounded-lg shadow-lg overflow-hidden transition-transform hover:scale-[1.02] cursor-pointer"
+    >
       <div className="relative aspect-[2/3] overflow-hidden">
         {movie.posterPath ? (
           <img
@@ -76,7 +88,7 @@ const MovieCard = ({ movie, onStatusChange, onRemove }: MovieCardProps) => {
             <span className="text-sm">{movie.status === 'watched' ? 'Watched' : 'Not Watched'}</span>
           </button>
           <button
-            onClick={onRemove}
+            onClick={handleRemove}
             className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-red-100 text-red-700 hover:opacity-80 transition-opacity"
             title="Sil"
           >

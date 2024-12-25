@@ -1,23 +1,23 @@
 export interface TMDBResponse {
     page: number;
-    results: Array<TMDBResult>;
+    results: TMDBResult[];
     total_pages: number;
     total_results: number;
 }
 
 export interface TMDBResult {
     id: number;
-    media_type: "movie" | "tv" | "person";
+    media_type: 'movie' | 'tv';
     title?: string;
     name?: string;
     original_title?: string;
     original_name?: string;
+    poster_path: string | null;
+    backdrop_path: string | null;
+    overview: string;
     release_date?: string;
     first_air_date?: string;
     last_air_date?: string;
-    poster_path?: string | null;
-    backdrop_path?: string | null;
-    overview?: string;
     vote_average: number;
     vote_count: number;
     popularity: number;
@@ -25,7 +25,67 @@ export interface TMDBResult {
     genre_ids: number[];
 }
 
-// TMDB'nin genre listesi (https://developers.themoviedb.org/3/genres/get-movie-list)
+export interface FilterOptions {
+    mediaTypes: Array<{
+        value: string;
+        label: string;
+    }>;
+    genres: Array<{
+        value: string;
+        label: string;
+    }>;
+    statusOptions: Array<{
+        value: string;
+        label: string;
+    }>;
+}
+
+export interface TMDBVideoResult {
+    id: string;
+    key: string;
+    site: string;
+    type: string;
+}
+
+export interface TMDBVideosResponse {
+    id: number;
+    results: TMDBVideoResult[];
+}
+
+export interface TMDBProvider {
+    logo_path: string;
+    provider_id: number;
+    provider_name: string;
+    display_priority: number;
+}
+
+export interface TMDBProviderCountry {
+    link: string;
+    flatrate?: TMDBProvider[];
+    rent?: TMDBProvider[];
+    buy?: TMDBProvider[];
+}
+
+export interface TMDBProvidersResponse {
+    id: number;
+    results: {
+        [country: string]: TMDBProviderCountry;
+    };
+}
+
+export interface TMDBProductionCountry {
+    iso_3166_1: string;
+    name: string;
+}
+
+export interface TMDBDetailsResponse {
+    backdrop_path: string | null;
+    runtime?: number;
+    episode_run_time?: number[];
+    original_language: string;
+    production_countries: TMDBProductionCountry[];
+}
+
 export const TMDB_GENRES: { [key: number]: string } = {
     28: "Action",
     12: "Adventure",
@@ -54,4 +114,26 @@ export const TMDB_GENRES: { [key: number]: string } = {
     10766: "Soap",
     10767: "Talk",
     10768: "War & Politics"
-}; 
+};
+
+export interface TMDBCastMember {
+    id: number;
+    name: string;
+    character: string;
+    profile_path: string | null;
+    order: number;
+}
+
+export interface TMDBCrewMember {
+    id: number;
+    name: string;
+    job: string;
+    department: string;
+    profile_path: string | null;
+}
+
+export interface TMDBCreditsResponse {
+    id: number;
+    cast: TMDBCastMember[];
+    crew: TMDBCrewMember[];
+} 
