@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, Check, Circle, Plus, Trash } from 'lucide-react';
+import { ArrowLeft, Star, Check, Circle, Plus, Trash2 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { fetchMovieDetails, updateMovieStatus, clearCurrentMovie, addMovie } from '../redux/movieSlice';
+import {
+    fetchMovieDetails,
+    updateMovieStatus,
+    clearCurrentMovie,
+    addMovie,
+    deleteMovie
+} from '../redux/movieSlice';
 import MovieTrailer from '../components/MovieTrailer';
 import MovieProviders from '../components/MovieProviders';
 import Navbar from '../components/Navbar';
@@ -62,12 +68,28 @@ const MovieDetail = () => {
 
             const result = await dispatch(addMovie(movieData)).unwrap();
             if (result) {
-                toast.success(`🎬 "${movie.title}" listenize eklendi`);
+                toast.success(`🎬 "${movie.title}" added to your list`);
                 // Film eklendikten sonra detayları yeniden yükle
                 dispatch(fetchMovieDetails({ movieId: movie.tmdbId.toString(), movieType: type || '' }));
             }
         } catch (error: any) {
-            toast.error(error.message || 'Film eklenirken bir hata oluştu');
+            toast.error(error.message || 'An error occurred while adding the movie.');
+        }
+    };
+
+    const handleRemove = async () => {
+        if (!movie) return;
+
+        if (window.confirm('Are you sure you want to remove this movie from your list?')) {
+            try {
+                const result = await dispatch(deleteMovie(movie.tmdbId)).unwrap();
+                if (result) {
+                    toast.success(`🗑️ "${movie.title}" removed from your list`);
+                    navigate(-1);
+                }
+            } catch (error: any) {
+                toast.error(error.message || 'An error occurred while deleting the movie.');
+            }
         }
     };
 
@@ -248,10 +270,10 @@ const MovieDetail = () => {
                                                     </div>
                                                     <div>
                                                         <button
-                                                            onClick={handleStatusUpdate}
-                                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-red-100 text-red-700 hover:bg-red-200`}
+                                                            onClick={handleRemove}
+                                                            className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-red-100 text-red-700 hover:bg-red-200"
                                                         >
-                                                            <Trash className="w-5 h-5" />
+                                                            <Trash2 className="w-5 h-5" />
                                                             Delete from List
                                                         </button>
                                                     </div>

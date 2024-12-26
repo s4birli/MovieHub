@@ -337,7 +337,6 @@ const getMovieDetails: CustomRequestHandler = async (req, res) => {
                     ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
                     : null
             }));
-        console.log(detailsResponse.data);
         const movieDetails = {
             backdropPath: detailsResponse.data.backdrop_path
                 ? `https://image.tmdb.org/t/p/original${detailsResponse.data.backdrop_path}`
