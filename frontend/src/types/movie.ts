@@ -37,4 +37,7 @@ export interface Movie {
         character: string;
         profilePath: string | null;
     }>;
+    voteCount?: number;
+    popularity?: number;
+    isInList?: boolean;
 } 

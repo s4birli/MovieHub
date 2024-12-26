@@ -26,7 +26,7 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route path="/movie/:id" element={<PrivateRoute><MovieDetail /></PrivateRoute>} />
+          <Route path="/movie/:id/:type" element={<PrivateRoute><MovieDetail /></PrivateRoute>} />
 
           <Route path="/" element={<DefaultRoute />} />
 

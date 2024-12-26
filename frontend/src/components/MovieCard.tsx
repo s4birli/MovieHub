@@ -36,7 +36,7 @@ const MovieCard = ({ movie, onStatusChange, onRemove }: MovieCardProps) => {
 
   return (
     <div
-      onClick={() => navigate(`/movie/${movie.tmdbId}`)}
+      onClick={() => navigate(`/movie/${movie.tmdbId}/${movie.mediaType}`)}
       className="bg-white rounded-lg shadow-lg overflow-hidden transition-transform hover:scale-[1.02] cursor-pointer"
     >
       <div className="relative aspect-[2/3] overflow-hidden">

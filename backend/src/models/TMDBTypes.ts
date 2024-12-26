@@ -84,6 +84,19 @@ export interface TMDBDetailsResponse {
     episode_run_time?: number[];
     original_language: string;
     production_countries: TMDBProductionCountry[];
+    release_date?: string;
+    first_air_date?: string;
+    genres?: TMDBGenre[];
+    overview: string;
+    vote_average: number;
+    vote_count: number;
+    popularity: number;
+    isInList: boolean;
+}
+
+export interface TMDBGenre {
+    id: number;
+    name: string;
 }
 
 export const TMDB_GENRES: { [key: number]: string } = {

@@ -309,8 +309,6 @@ router.put(
 
         try {
             const user = await User.findById(req.user?.id);
-            console.log(req.user);
-            console.log(user);
             if (!user) {
                 res.status(404).json({ msg: "User not found" });
                 return;

@@ -36,28 +36,15 @@ const Sidebar = ({
   onClose,
   isMobile,
 }: SidebarProps) => {
-  const handleGenreChange = (value: string) => {
-    if (selectedGenres.includes(value)) {
-      onGenreChange(selectedGenres.filter(genre => genre !== value));
-    } else {
-      onGenreChange([...selectedGenres, value]);
-    }
-  };
 
-  const handleSelectAllGenres = (checked: boolean) => {
-    if (checked) {
-      onGenreChange(genres.map(genre => genre.value));
-    } else {
-      onGenreChange([]);
-    }
-  };
+
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg h-full lg:h-fit lg:sticky lg:top-4">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="w-5 h-5" />
-          <h2 className="text-lg font-semibold">Filtreler</h2>
+          <h2 className="text-lg font-semibold">Filters</h2>
         </div>
         {isMobile && (
           <button

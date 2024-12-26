@@ -150,8 +150,8 @@ export const fetchFilterOptions = createAsyncThunk(
 // Film detaylarını getir
 export const fetchMovieDetails = createAsyncThunk(
   "movie/fetchMovieDetails",
-  async (movieId: string) => {
-    const response = await axios.get(`/api/movies/details/${movieId}`);
+  async ({ movieId, movieType }: { movieId: string, movieType: string }) => {
+    const response = await axios.get(`/api/movies/details/${movieId}/${movieType}`);
     return response.data;
   }
 );

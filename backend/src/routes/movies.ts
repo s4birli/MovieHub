@@ -19,13 +19,12 @@ import OpenAI from 'openai';
 type SearchRequestHandler = CustomRequestHandler<any, any, any, { query?: string }>;
 
 const router: Router = express.Router();
-// Film arama endpoint'i
 const searchMovies: SearchRequestHandler = async (req, res) => {
     try {
         const { query } = req.query;
 
         if (!query) {
-            res.status(400).json({ message: "Arama sorgusu gerekli" });
+            res.status(400).json({ message: "Search query required." });
             return;
         }
 
@@ -54,8 +53,8 @@ const searchMovies: SearchRequestHandler = async (req, res) => {
 
         res.json(processedResults);
     } catch (error) {
-        console.error("Film arama hatası:", error);
-        res.status(500).json({ message: "Film arama sırasında bir hata oluştu" });
+        console.error("Movie search error:", error);
+        res.status(500).json({ message: "An error occurred while searching for the movie." });
     }
 };
 
@@ -272,9 +271,24 @@ const getFilterOptions: CustomRequestHandler = async (req, res) => {
 // Film detaylarını getir
 const getMovieDetails: CustomRequestHandler = async (req, res) => {
     try {
-        const { id } = req.params;
-        const API_KEY = process.env.MOVIE_DB_API_KEY;
+        const { id, type } = req.params;
 
+        // ID ve type parametrelerinin varlığını kontrol et
+        if (!id || !type) {
+            return res.status(400).json({ message: "ID ve type parametreleri gereklidir" });
+        }
+
+        // Geçerli medya tiplerini kontrol et
+        if (!['movie', 'tv'].includes(type)) {
+            return res.status(400).json({ message: "Geçersiz medya tipi" });
+        }
+
+        const API_KEY = process.env.MOVIE_DB_API_KEY;
+        if (!API_KEY) {
+            return res.status(500).json({ message: "API anahtarı bulunamadı" });
+        }
+
+        var isInList = false;
         // Kullanıcının listesindeki filmi bul
         const userMovie = await MovieList.findOne({
             tmdbId: Number(id),
@@ -283,11 +297,13 @@ const getMovieDetails: CustomRequestHandler = async (req, res) => {
         });
 
         if (!userMovie) {
-            return res.status(404).json({ message: "Film bulunamadı" });
+            isInList = false;
+        } else {
+            isInList = true;
         }
 
         // TMDB'den detayları al
-        const mediaType = userMovie.mediaType;
+        const mediaType = type;
         const detailsUrl = `https://api.themoviedb.org/3/${mediaType}/${id}?api_key=${API_KEY}`;
         const providersUrl = `https://api.themoviedb.org/3/${mediaType}/${id}/watch/providers?api_key=${API_KEY}`;
         const videosUrl = `https://api.themoviedb.org/3/${mediaType}/${id}/videos?api_key=${API_KEY}`;
@@ -332,10 +348,8 @@ const getMovieDetails: CustomRequestHandler = async (req, res) => {
                     ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
                     : null
             }));
-
         // Detayları birleştir
         const movieDetails = {
-            ...userMovie.toObject(),
             backdropPath: detailsResponse.data.backdrop_path
                 ? `https://image.tmdb.org/t/p/original${detailsResponse.data.backdrop_path}`
                 : null,
@@ -345,11 +359,19 @@ const getMovieDetails: CustomRequestHandler = async (req, res) => {
             availableOnNetflix: !!netflixProvider,
             providers: providersResponse.data.results || {},
             runtime: detailsResponse.data.runtime || detailsResponse.data.episode_run_time?.[0],
-            status: userMovie.status,
+            status: isInList ? userMovie?.status : 'unwatched',
             originalLanguage: detailsResponse.data.original_language,
             productionCountries: detailsResponse.data.production_countries?.map((c) => c.name) || [],
             directors,
             cast,
+            year: detailsResponse.data.release_date?.split('-')[0] || detailsResponse.data.first_air_date?.split('-')[0],
+            genres: detailsResponse.data.genres?.map((g) => g.name) || [],
+            overview: detailsResponse.data.overview,
+            voteAverage: detailsResponse.data.vote_average,
+            voteCount: detailsResponse.data.vote_count,
+            popularity: detailsResponse.data.popularity,
+            mediaType: type,
+            isInList: isInList
         };
 
         res.json(movieDetails);
@@ -459,7 +481,6 @@ async function scrapeInstagramComment(url: string) {
     }
 }
 
-// TMDB'den film arama fonksiyonu
 async function searchMovieInTMDB(title: string, year?: string, mediaType?: string) {
     let endpoint: string;
 
@@ -588,7 +609,7 @@ router.post("/list", addMovie);
 router.put("/list/:id", updateMovie);
 router.delete("/list/:id", removeMovie);
 router.get("/filters", getFilterOptions);
-router.get("/details/:id", getMovieDetails);
+router.get("/details/:id/:type", getMovieDetails);
 router.post("/from-instagram", getInstagramMovie);
 
 export default router; 

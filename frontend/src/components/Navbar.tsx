@@ -158,6 +158,10 @@ const Navbar = ({
     }
   };
 
+  const handleDetailMovie = (movie: any) => {
+    navigate(`/movie/${movie.tmdbId}/${movie.mediaType}`);
+  };
+
   return (
     <>
       <nav className="bg-white shadow-md relative">
@@ -228,7 +232,7 @@ const Navbar = ({
                     </div>
                     <input
                       type="text"
-                      placeholder="En az 3 harf girerek film arayın..."
+                      placeholder="Enter at least 3 characters to search..."
                       onChange={(e) => handleSearch(e.target.value)}
                       className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
@@ -277,7 +281,7 @@ const Navbar = ({
                             <Plus className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => navigate(`/movie/${movie.tmdbId}`)}
+                            onClick={() => handleDetailMovie(movie)}
                             className="p-1.5 rounded-full hover:bg-gray-200 text-gray-600"
                             title="Detayları Görüntüle"
                           >
@@ -359,7 +363,7 @@ const Navbar = ({
                 </div>
                 <input
                   type="text"
-                  placeholder="Film ara..."
+                  placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
                   className="block w-full pl-10 pr-3 py-2 mb-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
