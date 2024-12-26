@@ -96,6 +96,7 @@ export interface TMDBDetailsResponse {
     title: string;
     name: string;
     adult: boolean;
+    poster_path: string | null;
 }
 
 export interface TMDBGenre {

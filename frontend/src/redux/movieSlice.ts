@@ -103,7 +103,7 @@ export const updateMovieStatus = createAsyncThunk(
   async ({ movieId, status }: { movieId: number; status: 'watched' | 'unwatched' }, { rejectWithValue }) => {
     try {
       const response = await axios.put(`/api/movies/list/${movieId}`, { status });
-      return response.data;
+      return { ...response.data, isInList: true };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update status');
     }

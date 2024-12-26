@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Star, Check, Circle } from 'lucide-react';
+import { ArrowLeft, Star, Check, Circle, Plus, Trash } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { fetchMovieDetails, updateMovieStatus, clearCurrentMovie } from '../redux/movieSlice';
+import { fetchMovieDetails, updateMovieStatus, clearCurrentMovie, addMovie } from '../redux/movieSlice';
 import MovieTrailer from '../components/MovieTrailer';
 import MovieProviders from '../components/MovieProviders';
 import Navbar from '../components/Navbar';
+import { toast } from 'react-toastify';
 
 const MovieDetail = () => {
     const { id, type } = useParams();
@@ -31,8 +32,43 @@ const MovieDetail = () => {
 
         dispatch(updateMovieStatus({
             movieId: movie.tmdbId,
-            status: movie.status === 'watched' ? 'unwatched' : 'watched'
+            status: movie.status === 'watched' ? 'unwatched' : 'watched',
         }));
+        if (id && type) {
+            dispatch(fetchMovieDetails({ movieId: id, movieType: type }));
+        }
+    };
+
+    const handleAddMovie = async () => {
+        if (!movie) return;
+
+        try {
+            const movieData = {
+                tmdbId: movie.tmdbId,
+                title: movie.title,
+                originalTitle: movie.title,
+                year: movie.year,
+                mediaType: movie.mediaType,
+                posterPath: movie.posterPath,
+                backdropPath: movie.backdropPath,
+                overview: movie.overview,
+                voteAverage: movie.voteAverage,
+                voteCount: movie.voteCount,
+                popularity: movie.popularity,
+                originalLanguage: movie.originalLanguage,
+                genres: movie.genres,
+                status: 'unwatched'
+            };
+
+            const result = await dispatch(addMovie(movieData)).unwrap();
+            if (result) {
+                toast.success(`🎬 "${movie.title}" listenize eklendi`);
+                // Film eklendikten sonra detayları yeniden yükle
+                dispatch(fetchMovieDetails({ movieId: movie.tmdbId.toString(), movieType: type || '' }));
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'Film eklenirken bir hata oluştu');
+        }
     };
 
     if (loading) {
@@ -187,34 +223,46 @@ const MovieDetail = () => {
                                                 <dd className="text-gray-900 capitalize">{movie.mediaType}</dd>
                                             </div>
                                             {movie.isInList ? (
-                                                <div>
-                                                    <dt className="text-sm text-gray-500 mb-2">Status</dt>
-                                                    <button
-                                                        onClick={handleStatusUpdate}
-                                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${movie.status === 'watched'
-                                                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                            }`}
-                                                    >
-                                                        {movie.status === 'watched' ? (
-                                                            <>
-                                                                <Check className="w-5 h-5" />
-                                                                <span>Watched</span>
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <Circle className="w-5 h-5" />
-                                                                <span>Not Watched</span>
-                                                            </>
-                                                        )}
-                                                    </button>
-                                                </div>
+                                                <>
+                                                    <div>
+                                                        <dt className="text-sm text-gray-500 mb-2">Status</dt>
+                                                        <button
+                                                            onClick={handleStatusUpdate}
+                                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${movie.status === 'watched'
+                                                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                                }`}
+                                                        >
+                                                            {movie.status === 'watched' ? (
+                                                                <>
+                                                                    <Check className="w-5 h-5" />
+                                                                    <span>Watched</span>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <Circle className="w-5 h-5" />
+                                                                    <span>Not Watched</span>
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                    <div>
+                                                        <button
+                                                            onClick={handleStatusUpdate}
+                                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-red-100 text-red-700 hover:bg-red-200`}
+                                                        >
+                                                            <Trash className="w-5 h-5" />
+                                                            Delete from List
+                                                        </button>
+                                                    </div>
+                                                </>
                                             ) : (
                                                 <div>
                                                     <button
-                                                        onClick={handleStatusUpdate}
-                                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-green-100 text-green-700 hover:bg-green-200`}
+                                                        onClick={handleAddMovie}
+                                                        className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-green-100 text-green-700 hover:bg-green-200"
                                                     >
+                                                        <Plus className="w-5 h-5" />
                                                         Add to List
                                                     </button>
                                                 </div>

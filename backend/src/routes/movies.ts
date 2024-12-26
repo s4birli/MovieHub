@@ -345,6 +345,9 @@ const getMovieDetails: CustomRequestHandler = async (req, res) => {
             trailer: trailer
                 ? `https://www.youtube.com/watch?v=${trailer.key}`
                 : null,
+            posterPath: detailsResponse.data.poster_path
+                ? `https://image.tmdb.org/t/p/w500${detailsResponse.data.poster_path}`
+                : null,
             availableOnNetflix: !!netflixProvider,
             providers: providersResponse.data.results || {},
             runtime: detailsResponse.data.runtime || detailsResponse.data.episode_run_time?.[0],
