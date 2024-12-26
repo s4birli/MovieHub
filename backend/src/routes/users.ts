@@ -7,6 +7,7 @@ import User, { IUser } from "../models/User";
 import sendEmail from "../utils/sendEmail";
 import multer from 'multer';
 import auth from '../middleware/auth';
+import { AuthRequest } from "../models/types";
 
 
 
@@ -293,19 +294,22 @@ router.post(
 // Update user profile
 router.put(
     "/profile",
+    auth,
     upload.single('avatar'),
     [
         check("name", "Name is required").optional().not().isEmpty(),
         check("email", "Please include a valid Email").optional().isEmail(),
     ],
-    async (req: Request, res: Response) => {
+    async (req: AuthRequest, res: Response) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             res.status(400).json({ errors: errors.array() });
         }
 
         try {
-            const user = await User.findById(req.body.user?.id);
+            const user = await User.findById(req.user?.id);
+            console.log(req.user);
+            console.log(user);
             if (!user) {
                 res.status(404).json({ msg: "User not found" });
                 return;
@@ -345,18 +349,19 @@ router.put(
 // Update password
 router.put(
     "/password",
+    auth,
     [
         check("currentPassword", "Current password is required").exists(),
         check("newPassword", "Please enter a password with 6 or more characters").isLength({ min: 6 }),
     ],
-    async (req: Request, res: Response) => {
+    async (req: AuthRequest, res: Response) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             res.status(400).json({ errors: errors.array() });
         }
 
         try {
-            const user = await User.findById(req.body.user?.id);
+            const user = await User.findById(req.user?.id);
             if (!user) {
                 res.status(404).json({ msg: "User not found" });
                 return;
