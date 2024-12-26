@@ -58,7 +58,6 @@ const searchMovies: SearchRequestHandler = async (req, res) => {
     }
 };
 
-// Kullanıcının film listesini getir
 const getMovieList: CustomRequestHandler = async (req, res) => {
     try {
         const {
@@ -68,7 +67,8 @@ const getMovieList: CustomRequestHandler = async (req, res) => {
             mediaType,
             status,
             sortBy = 'rating',
-            sortOrder = 'desc'
+            sortOrder = 'desc',
+            search
         } = req.query as unknown as MovieListQuery;
 
         // Temel sorgu
@@ -86,6 +86,13 @@ const getMovieList: CustomRequestHandler = async (req, res) => {
         }
         if (status) {
             query.status = status;
+        }
+        // Arama sorgusu ekle
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { originalTitle: { $regex: search, $options: 'i' } }
+            ];
         }
 
         // Sıralama
@@ -119,7 +126,6 @@ const getMovieList: CustomRequestHandler = async (req, res) => {
     }
 };
 
-// Filme listesine film ekle
 const addMovie: CustomRequestHandler = async (req, res) => {
     try {
         const movieData = {
@@ -176,7 +182,6 @@ const addMovie: CustomRequestHandler = async (req, res) => {
     }
 };
 
-// Film güncelle (izlendi durumu)
 const updateMovie: CustomRequestHandler = async (req, res) => {
     try {
         // Sadece status güncellenebilir
@@ -217,7 +222,6 @@ const updateMovie: CustomRequestHandler = async (req, res) => {
     }
 };
 
-// Filmi listeden kaldır (soft delete)
 const removeMovie: CustomRequestHandler = async (req, res) => {
     try {
         const movie = await MovieList.findOneAndUpdate(
@@ -237,7 +241,6 @@ const removeMovie: CustomRequestHandler = async (req, res) => {
     }
 };
 
-// Filtre seçeneklerini getir
 const getFilterOptions: CustomRequestHandler = async (req, res) => {
     try {
         const mediaTypes = [
@@ -268,17 +271,14 @@ const getFilterOptions: CustomRequestHandler = async (req, res) => {
     }
 };
 
-// Film detaylarını getir
 const getMovieDetails: CustomRequestHandler = async (req, res) => {
     try {
         const { id, type } = req.params;
 
-        // ID ve type parametrelerinin varlığını kontrol et
         if (!id || !type) {
             return res.status(400).json({ message: "ID ve type parametreleri gereklidir" });
         }
 
-        // Geçerli medya tiplerini kontrol et
         if (!['movie', 'tv'].includes(type)) {
             return res.status(400).json({ message: "Geçersiz medya tipi" });
         }
@@ -288,21 +288,14 @@ const getMovieDetails: CustomRequestHandler = async (req, res) => {
             return res.status(500).json({ message: "API anahtarı bulunamadı" });
         }
 
-        var isInList = false;
-        // Kullanıcının listesindeki filmi bul
         const userMovie = await MovieList.findOne({
             tmdbId: Number(id),
             user: req.user?.id,
             isActive: true
         });
 
-        if (!userMovie) {
-            isInList = false;
-        } else {
-            isInList = true;
-        }
+        const isInList = userMovie ? true : false;
 
-        // TMDB'den detayları al
         const mediaType = type;
         const detailsUrl = `https://api.themoviedb.org/3/${mediaType}/${id}?api_key=${API_KEY}`;
         const providersUrl = `https://api.themoviedb.org/3/${mediaType}/${id}/watch/providers?api_key=${API_KEY}`;
@@ -316,17 +309,14 @@ const getMovieDetails: CustomRequestHandler = async (req, res) => {
             axios.get<TMDBCreditsResponse>(creditsUrl)
         ]);
 
-        // Trailer'ı bul
         const trailer = videosResponse.data.results.find(
             (video) => video.type === "Trailer" && video.site === "YouTube"
         );
 
-        // Netflix provider'ı bul
         const netflixProvider = Object.values(providersResponse.data.results || {}).find(
             (country) => country.flatrate?.some((provider) => provider.provider_id === 8)
         );
 
-        // Yönetmenleri bul
         const directors = creditsResponse.data.crew
             .filter(person => person.job === "Director")
             .map(director => ({
@@ -337,7 +327,6 @@ const getMovieDetails: CustomRequestHandler = async (req, res) => {
                     : null
             }));
 
-        // Oyuncuları al (ilk 10)
         const cast = creditsResponse.data.cast
             .slice(0, 10)
             .map(actor => ({
@@ -348,7 +337,7 @@ const getMovieDetails: CustomRequestHandler = async (req, res) => {
                     ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
                     : null
             }));
-        // Detayları birleştir
+        console.log(detailsResponse.data);
         const movieDetails = {
             backdropPath: detailsResponse.data.backdrop_path
                 ? `https://image.tmdb.org/t/p/original${detailsResponse.data.backdrop_path}`
@@ -371,7 +360,10 @@ const getMovieDetails: CustomRequestHandler = async (req, res) => {
             voteCount: detailsResponse.data.vote_count,
             popularity: detailsResponse.data.popularity,
             mediaType: type,
-            isInList: isInList
+            isInList: isInList,
+            tmdbId: detailsResponse.data.id,
+            title: detailsResponse.data.title || detailsResponse.data.name,
+            adult: detailsResponse.data.adult,
         };
 
         res.json(movieDetails);
@@ -381,7 +373,6 @@ const getMovieDetails: CustomRequestHandler = async (req, res) => {
     }
 };
 
-// ChatGPT'den film detaylarını alma fonksiyonu
 async function getMovieDetailsFromGPT(comment: string) {
 
     const openai = new OpenAI({
@@ -436,7 +427,6 @@ async function getMovieDetailsFromGPT(comment: string) {
     }
 }
 
-// Instagram'dan yorum çekme fonksiyonu
 async function scrapeInstagramComment(url: string) {
     const browser = await puppeteer.launch({
         headless: true,
@@ -500,7 +490,6 @@ async function searchMovieInTMDB(title: string, year?: string, mediaType?: strin
 
     return response.data.results[0];
 }
-
 
 const getInstagramMovie: CustomRequestHandler = async (req, res) => {
     try {

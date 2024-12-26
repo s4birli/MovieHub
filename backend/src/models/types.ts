@@ -3,11 +3,12 @@ import { Request, Response, NextFunction } from 'express';
 export interface MovieListQuery {
     page?: number;
     limit?: number;
-    genres?: string[];
+    genres?: string | string[];
     mediaType?: 'movie' | 'tv';
-    status?: 'watching' | 'completed' | 'plan-to-watch';
+    status?: 'watched' | 'unwatched';
     sortBy?: 'title' | 'rating' | 'year';
     sortOrder?: 'asc' | 'desc';
+    search?: string;
 }
 
 export interface AuthRequest extends Request {

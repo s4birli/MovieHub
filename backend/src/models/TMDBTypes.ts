@@ -92,6 +92,10 @@ export interface TMDBDetailsResponse {
     vote_count: number;
     popularity: number;
     isInList: boolean;
+    id: number;
+    title: string;
+    name: string;
+    adult: boolean;
 }
 
 export interface TMDBGenre {

@@ -36,12 +36,13 @@ const MovieList = () => {
         mediaType: selectedCategory,
         status: selectedStatus || undefined,
         sortBy,
-        sortOrder
+        sortOrder,
+        search: searchQuery
       }));
     };
 
     fetchData();
-  }, [dispatch, currentPage, pageSize, selectedGenres, selectedCategory, selectedStatus, sortBy, sortOrder]);
+  }, [dispatch, currentPage, pageSize, selectedGenres, selectedCategory, selectedStatus, sortBy, sortOrder, searchQuery]);
 
   const handleSortChange = (value: string) => {
     if (value.startsWith('-')) {
@@ -66,7 +67,8 @@ const MovieList = () => {
           mediaType: selectedCategory,
           status: selectedStatus || undefined,
           sortBy,
-          sortOrder
+          sortOrder,
+          search: searchQuery
         }));
       }
     } catch (error: any) {
@@ -87,7 +89,8 @@ const MovieList = () => {
           mediaType: selectedCategory,
           status: selectedStatus || undefined,
           sortBy,
-          sortOrder
+          sortOrder,
+          search: searchQuery
         }));
       }
     } catch (error: any) {
@@ -125,9 +128,9 @@ const MovieList = () => {
               }}
               className="text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value={10}>12 per page</option>
-              <option value={20}>24 per page</option>
-              <option value={100}>60 per page</option>
+              <option value={12}>12 per page</option>
+              <option value={24}>24 per page</option>
+              <option value={60}>60 per page</option>
             </select>
           </div>
         </div>

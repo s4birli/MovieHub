@@ -79,13 +79,14 @@ const MovieDetail = () => {
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                             <div className="absolute bottom-0 left-0 p-8 text-white">
-                                <h1 className="text-4xl font-bold mb-2">{movie.title}</h1>
+                                <h1 className="text-4xl font-bold mb-2">{movie.title} {movie.adult && (<><span> - </span> <span className="text-red-500">18+</span></>)}</h1>
                                 <div className="flex items-center gap-4">
                                     {movie.year && <span>{movie.year}</span>}
                                     {movie.voteAverage && (
                                         <div className="flex items-center gap-1">
                                             <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                                            <span>{movie.voteAverage.toFixed(1)} / {movie.voteCount?.toFixed(0) || 0} - Popularity: {movie.popularity?.toFixed(0) || 0}</span>
+                                            <span>Vote Average: {movie.voteAverage.toFixed(1)} / Vote Count: {movie.voteCount?.toFixed(0) || 0}</span>
+                                            {/* - Popularity: {movie.popularity?.toFixed(0) || 0} */}
                                         </div>
                                     )}
                                 </div>

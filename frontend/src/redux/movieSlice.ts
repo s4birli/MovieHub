@@ -64,6 +64,7 @@ export const fetchMovies = createAsyncThunk(
     status?: string;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
+    search?: string;
   }, { rejectWithValue }) => {
     try {
       const queryParams = new URLSearchParams();
@@ -76,7 +77,7 @@ export const fetchMovies = createAsyncThunk(
       if (params.status) queryParams.append('status', params.status);
       if (params.sortBy) queryParams.append('sortBy', params.sortBy);
       if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
-
+      if (params.search) queryParams.append('search', params.search);
       const response = await axios.get(`/api/movies/list?${queryParams.toString()}`);
       return response.data;
     } catch (error: any) {

@@ -40,4 +40,5 @@ export interface Movie {
     voteCount?: number;
     popularity?: number;
     isInList?: boolean;
+    adult?: boolean;
 } 
