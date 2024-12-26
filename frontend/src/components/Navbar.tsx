@@ -254,7 +254,8 @@ const Navbar = ({
                     {searchResults.map((movie: any) => (
                       <li
                         key={movie.tmdbId}
-                        className="flex items-center p-2 hover:bg-gray-100"
+                        className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleDetailMovie(movie)}
                       >
                         <img
                           src={movie.posterPath || noImage}
@@ -274,18 +275,14 @@ const Navbar = ({
                         </div>
                         <div className="flex flex-col gap-2">
                           <button
-                            onClick={() => handleAddMovie(movie)}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Tıklamanın üst öğeye yayılmasını engelle
+                              handleAddMovie(movie);
+                            }}
                             className="p-1.5 rounded-full hover:bg-gray-200 text-gray-600"
-                            title="Listeye Ekle"
+                            title="Add to List"
                           >
                             <Plus className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDetailMovie(movie)}
-                            className="p-1.5 rounded-full hover:bg-gray-200 text-gray-600"
-                            title="Detayları Görüntüle"
-                          >
-                            <Info className="h-5 w-5" />
                           </button>
                         </div>
                       </li>
@@ -377,7 +374,8 @@ const Navbar = ({
                     {searchResults.map((movie: any) => (
                       <li
                         key={movie.tmdbId}
-                        className="flex items-center p-2 hover:bg-gray-100"
+                        className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleDetailMovie(movie)}
                       >
                         <img
                           src={movie.posterPath || noImage}
@@ -397,18 +395,14 @@ const Navbar = ({
                         </div>
                         <div className="flex flex-col gap-2">
                           <button
-                            onClick={() => handleAddMovie(movie)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddMovie(movie);
+                            }}
                             className="p-1.5 rounded-full hover:bg-gray-200 text-gray-600"
-                            title="Listeye Ekle"
+                            title="Add to List"
                           >
                             <Plus className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => navigate(`/movie/${movie.tmdbId}`)}
-                            className="p-1.5 rounded-full hover:bg-gray-200 text-gray-600"
-                            title="Detayları Görüntüle"
-                          >
-                            <Info className="h-5 w-5" />
                           </button>
                         </div>
                       </li>
