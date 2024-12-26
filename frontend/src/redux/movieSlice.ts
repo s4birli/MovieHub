@@ -87,34 +87,36 @@ export const fetchMovies = createAsyncThunk(
 
 export const addMovie = createAsyncThunk(
   "movie/addMovie",
-  async (movieData: any, { rejectWithValue }) => {
+  async (movieData: any, { rejectWithValue, dispatch }) => {
     try {
       const response = await axios.post("/api/movies/list", movieData);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response.data.msg || "Failed to add movie");
+      return rejectWithValue(error.response?.data?.message || "Failed to add movie");
     }
   }
 );
 
 export const updateMovieStatus = createAsyncThunk(
-  "movie/updateStatus",
-  async ({ movieId, status }: { movieId: number; status: 'watched' | 'unwatched' }) => {
-    const response = await axios.put(`/api/movies/list/${movieId}`, { status });
-    return response.data;
+  'movies/updateStatus',
+  async ({ movieId, status }: { movieId: number; status: 'watched' | 'unwatched' }, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(`/api/movies/list/${movieId}`, { status });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update status');
+    }
   }
 );
 
 export const deleteMovie = createAsyncThunk(
-  "movie/deleteMovie",
-  async (tmdbId: number, { rejectWithValue }) => {
+  'movies/delete',
+  async (movieId: number, { rejectWithValue }) => {
     try {
-      await axios.delete(`/api/movies/list/${tmdbId}`);
-      return tmdbId;
+      const response = await axios.delete(`/api/movies/list/${movieId}`);
+      return response.data;
     } catch (error: any) {
-      return rejectWithValue(
-        error.response.data.msg || "Failed to delete movie"
-      );
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete movie');
     }
   }
 );
@@ -157,12 +159,12 @@ export const fetchMovieDetails = createAsyncThunk(
 // Instagram'dan film ekleme action'ı
 export const addMovieFromInstagram = createAsyncThunk(
   'movies/addFromInstagram',
-  async (url: string, { rejectWithValue }) => {
+  async (url: string, { rejectWithValue, dispatch }) => {
     try {
       const response = await axios.post('/api/movies/from-instagram', { url });
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Film eklenirken bir hata oluştu');
+      return rejectWithValue(error.response?.data?.message || 'Error adding movie');
     }
   }
 );
@@ -209,9 +211,17 @@ const movieSlice = createSlice({
         state.error = action.payload as string;
       })
       // Add Movie
-      .addCase(addMovie.fulfilled, (state, action) => {
-        state.movies.push(action.payload);
-        state.filteredMovies.push(action.payload);
+      .addCase(addMovie.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addMovie.fulfilled, (state) => {
+        state.loading = false;
+        // Liste zaten fetchMovies ile güncellenecek
+      })
+      .addCase(addMovie.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       })
       // Update Movie Status
       .addCase(updateMovieStatus.fulfilled, (state, action) => {
@@ -272,7 +282,7 @@ const movieSlice = createSlice({
       })
       .addCase(fetchMovieDetails.rejected, (state, action) => {
         state.currentMovieLoading = false;
-        state.currentMovieError = action.error.message || "Film detayları alınamadı";
+        state.currentMovieError = action.error.message || "Failed to fetch movie details";
       })
       // Instagram'dan film ekleme case'leri
       .addCase(addMovieFromInstagram.pending, (state) => {

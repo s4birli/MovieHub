@@ -14,10 +14,28 @@ import { logout } from "../redux/authSlice";
 import { useNavigate, Link } from "react-router-dom";
 import noImage from "../assets/images/no-image.png";
 import { debounce } from "lodash";
-import { searchMovies, addMovie, addMovieFromInstagram } from "../redux/movieSlice";
+import { searchMovies, addMovie, addMovieFromInstagram, fetchMovies } from "../redux/movieSlice";
 import { toast } from 'react-toastify';
 
-const Navbar = () => {
+interface NavbarProps {
+  currentPage: number;
+  pageSize: number;
+  selectedGenres: string[];
+  selectedCategory: string;
+  selectedStatus: string;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+}
+
+const Navbar = ({
+  currentPage,
+  pageSize,
+  selectedGenres,
+  selectedCategory,
+  selectedStatus,
+  sortBy,
+  sortOrder
+}: NavbarProps) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -52,21 +70,24 @@ const Navbar = () => {
       setIsLoading(true);
       try {
         const result = await dispatch(addMovieFromInstagram(urlInput)).unwrap();
-        toast.success(`🎬 "${result.title}" has been added successfully!`, {
-          position: "top-right",
-          autoClose: 3000,
-          closeButton: true,
-          hideProgressBar: false,
-        });
+        if (result) {
+          toast.success(`🎬 "${result.title}" has been added successfully!`);
+
+          // Mevcut filtrelere göre listeyi yenile
+          await dispatch(fetchMovies({
+            page: currentPage,
+            limit: pageSize,
+            genres: selectedGenres,
+            mediaType: selectedCategory,
+            status: selectedStatus || undefined,
+            sortBy,
+            sortOrder
+          }));
+        }
         setUrlInput('');
         setShowUrlInput(false);
       } catch (error: any) {
-        toast.error(error.message || 'Error adding movie', {
-          position: "top-right",
-          autoClose: 5000,
-          closeButton: true,
-          hideProgressBar: false,
-        });
+        toast.error(error.message || 'Error adding movie');
       } finally {
         setIsLoading(false);
       }
@@ -85,25 +106,44 @@ const Navbar = () => {
     };
   }, [searchRef]);
 
-  const handleAddMovie = (movie: any) => {
+  const handleAddMovie = async (movie: any) => {
+    try {
+      const movieData = {
+        tmdbId: movie.tmdbId,
+        title: movie.title,
+        originalTitle: movie.originalTitle,
+        year: movie.year?.split('-')[0],
+        mediaType: movie.mediaType,
+        posterPath: movie.posterPath ? `https://image.tmdb.org/t/p/w500${movie.posterPath}` : null,
+        backdropPath: movie.backdropPath ? `https://image.tmdb.org/t/p/original${movie.backdropPath}` : null,
+        overview: movie.overview,
+        voteAverage: movie.voteAverage,
+        voteCount: movie.voteCount,
+        popularity: movie.popularity,
+        originalLanguage: movie.originalLanguage,
+        genres: movie.genres,
+        status: 'unwatched'
+      };
 
-    const movieData = {
-      tmdbId: movie.tmdbId,
-      title: movie.title,
-      originalTitle: movie.originalTitle,
-      year: movie.year?.split('-')[0],
-      mediaType: movie.mediaType,
-      posterPath: movie.posterPath ? `https://image.tmdb.org/t/p/w500${movie.posterPath}` : null,
-      backdropPath: movie.backdropPath ? `https://image.tmdb.org/t/p/original${movie.backdropPath}` : null,
-      overview: movie.overview,
-      voteAverage: movie.voteAverage,
-      voteCount: movie.voteCount,
-      popularity: movie.popularity,
-      originalLanguage: movie.originalLanguage,
-      genres: movie.genres,
-      status: 'unwatched'
-    };
-    dispatch(addMovie(movieData));
+      const result = await dispatch(addMovie(movieData)).unwrap();
+      if (result) {
+        toast.success(`🎬 "${movie.title}" has been added to your list`);
+
+        // Mevcut filtrelere göre listeyi yenile
+        await dispatch(fetchMovies({
+          page: currentPage,
+          limit: pageSize,
+          genres: selectedGenres,
+          mediaType: selectedCategory,
+          status: selectedStatus || undefined,
+          sortBy,
+          sortOrder
+        }));
+      }
+      setShowResults(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to add movie');
+    }
   };
 
   return (

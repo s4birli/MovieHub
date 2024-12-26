@@ -16,12 +16,12 @@ const PasswordUpdate = ({ onUpdate }: PasswordUpdateProps) => {
         setError('');
 
         if (newPassword !== confirmPassword) {
-            setError('Yeni şifreler eşleşmiyor');
+            setError('New passwords do not match');
             return;
         }
 
         if (newPassword.length < 6) {
-            setError('Şifre en az 6 karakter olmalıdır');
+            setError('Password must be at least 6 characters');
             return;
         }
 
@@ -33,12 +33,12 @@ const PasswordUpdate = ({ onUpdate }: PasswordUpdateProps) => {
 
     return (
         <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold mb-4">Şifre Değiştir</h2>
+            <h2 className="text-lg font-semibold mb-4">Change Password</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">
-                        Mevcut Şifre
+                        Current Password
                     </label>
                     <div className="mt-1 relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -57,7 +57,7 @@ const PasswordUpdate = ({ onUpdate }: PasswordUpdateProps) => {
 
                 <div>
                     <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
-                        Yeni Şifre
+                        New Password
                     </label>
                     <div className="mt-1 relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -76,7 +76,7 @@ const PasswordUpdate = ({ onUpdate }: PasswordUpdateProps) => {
 
                 <div>
                     <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                        Yeni Şifre Tekrar
+                        Repeat New Password
                     </label>
                     <div className="mt-1 relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -102,7 +102,7 @@ const PasswordUpdate = ({ onUpdate }: PasswordUpdateProps) => {
                         type="submit"
                         className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
                     >
-                        Şifreyi Güncelle
+                        Update Password
                     </button>
                 </div>
             </form>

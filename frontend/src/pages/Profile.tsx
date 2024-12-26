@@ -22,26 +22,26 @@ const Profile = () => {
             }
 
             await dispatch(updateProfile(formData)).unwrap();
-            toast.success('Profil güncellendi');
+            toast.success('Profile updated successfully');
         } catch (error) {
-            toast.error('Profil güncellenirken hata oluştu');
+            toast.error('Failed to update profile');
         }
     };
 
     const handleUpdatePassword = async (currentPassword: string, newPassword: string) => {
         try {
             await dispatch(updatePassword({ currentPassword, newPassword })).unwrap();
-            toast.success('Şifre güncellendi');
+            toast.success('Password updated successfully');
         } catch (error) {
-            toast.error('Şifre güncellenirken hata oluştu');
+            toast.error('Failed to update password');
         }
     };
 
     return (
         <div>
-            <Navbar />
+            <Navbar currentPage={0} pageSize={0} selectedGenres={[]} selectedCategory={''} selectedStatus={''} sortBy={''} sortOrder={'asc'} />
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <h1 className="text-2xl font-bold text-gray-900 mb-8">Profil Ayarları</h1>
+                <h1 className="text-2xl font-bold text-gray-900 mb-8">Profile Settings</h1>
 
                 <div className="space-y-6">
                     <ProfileInfo user={user} onUpdate={handleUpdateProfile} />

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { fetchMovies, fetchFilterOptions, updateMovieStatus, deleteMovie } from "../redux/movieSlice";
+import { fetchMovies, fetchFilterOptions, updateMovieStatus, deleteMovie, addMovie } from "../redux/movieSlice";
 import MovieCard from "../components/MovieCard";
 import Sidebar from "../components/Sidebar";
 import { Menu } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { Movie } from '../types/movie';
+import { toast } from "react-hot-toast";
 
 const MovieList = () => {
   const dispatch = useAppDispatch();
@@ -39,11 +40,7 @@ const MovieList = () => {
       }));
     };
 
-    const timer = setTimeout(() => {
-      fetchData();
-    }, 300);
-
-    return () => clearTimeout(timer);
+    fetchData();
   }, [dispatch, currentPage, pageSize, selectedGenres, selectedCategory, selectedStatus, sortBy, sortOrder]);
 
   const handleSortChange = (value: string) => {
@@ -56,9 +53,71 @@ const MovieList = () => {
     }
   };
 
+  const handleStatusChange = async (movieId: number, status: 'watched' | 'unwatched') => {
+    try {
+      const result = await dispatch(updateMovieStatus({ movieId, status })).unwrap();
+      if (result) {
+        toast.success(`Movie status updated successfully`);
+        // Listeyi yenile
+        await dispatch(fetchMovies({
+          page: currentPage,
+          limit: pageSize,
+          genres: selectedGenres,
+          mediaType: selectedCategory,
+          status: selectedStatus || undefined,
+          sortBy,
+          sortOrder
+        }));
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update status');
+    }
+  };
+
+  const handleRemove = async (movieId: number) => {
+    try {
+      const result = await dispatch(deleteMovie(movieId)).unwrap();
+      if (result) {
+        toast.success(`Movie removed successfully`);
+        // Listeyi yenile
+        await dispatch(fetchMovies({
+          page: currentPage,
+          limit: pageSize,
+          genres: selectedGenres,
+          mediaType: selectedCategory,
+          status: selectedStatus || undefined,
+          sortBy,
+          sortOrder
+        }));
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to remove movie');
+    }
+  };
+
+  const handleAddMovie = async (movieData: any) => {
+    try {
+      const result = await dispatch(addMovie(movieData)).unwrap();
+      if (result) {
+        toast.success(`"${movieData.title}" has been added to your list`);
+        // Liste otomatik olarak güncellenecek
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to add movie');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar />
+      <Navbar
+        currentPage={currentPage}
+        pageSize={pageSize}
+        selectedGenres={selectedGenres}
+        selectedCategory={selectedCategory}
+        selectedStatus={selectedStatus}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Movie List</h1>
@@ -148,12 +207,8 @@ const MovieList = () => {
                   <MovieCard
                     key={`movie-${movie.tmdbId}`}
                     movie={movie}
-                    onStatusChange={(status) => {
-                      dispatch(updateMovieStatus({ movieId: movie.tmdbId, status }));
-                    }}
-                    onRemove={() => {
-                      dispatch(deleteMovie(movie.tmdbId));
-                    }}
+                    onStatusChange={(status) => handleStatusChange(movie.tmdbId, status)}
+                    onRemove={() => handleRemove(movie.tmdbId)}
                   />
                 );
               })}

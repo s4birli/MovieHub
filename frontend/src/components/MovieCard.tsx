@@ -11,14 +11,27 @@ interface MovieCardProps {
 const MovieCard = ({ movie, onStatusChange, onRemove }: MovieCardProps) => {
   const navigate = useNavigate();
 
-  const toggleStatus = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click when clicking buttons
-    onStatusChange(movie.status === 'watched' ? 'unwatched' : 'watched');
+  const toggleStatus = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const newStatus = movie.status === 'watched' ? 'unwatched' : 'watched';
+      await onStatusChange(newStatus);
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
   };
 
-  const handleRemove = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click when clicking buttons
-    onRemove();
+  const handleRemove = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to remove this movie?')) {
+      try {
+        await onRemove();
+      } catch (error) {
+        console.error('Error removing movie:', error);
+      }
+    }
   };
 
   return (

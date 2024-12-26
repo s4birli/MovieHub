@@ -30,7 +30,7 @@ const ProfileInfo = ({ user, onUpdate }: ProfileInfoProps) => {
 
     return (
         <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold mb-6">Kişisel Bilgiler</h2>
+            <h2 className="text-lg font-semibold mb-6">Profile Information</h2>
 
             <div className="flex flex-col items-center mb-6">
                 <AvatarUpload
@@ -43,7 +43,7 @@ const ProfileInfo = ({ user, onUpdate }: ProfileInfoProps) => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                            Ad Soyad
+                            Full Name
                         </label>
                         <div className="mt-1 relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -62,7 +62,7 @@ const ProfileInfo = ({ user, onUpdate }: ProfileInfoProps) => {
 
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                            E-posta
+                            Email
                         </label>
                         <div className="mt-1 relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -90,24 +90,24 @@ const ProfileInfo = ({ user, onUpdate }: ProfileInfoProps) => {
                             }}
                             className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
                         >
-                            İptal
+                            Cancel
                         </button>
                         <button
                             type="submit"
                             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
                         >
-                            Kaydet
+                            Save
                         </button>
                     </div>
                 </form>
             ) : (
                 <div className="space-y-4">
                     <div>
-                        <h3 className="text-sm font-medium text-gray-500">Ad Soyad</h3>
+                        <h3 className="text-sm font-medium text-gray-500">Full Name</h3>
                         <p className="mt-1">{name}</p>
                     </div>
                     <div>
-                        <h3 className="text-sm font-medium text-gray-500">E-posta</h3>
+                        <h3 className="text-sm font-medium text-gray-500">Email</h3>
                         <p className="mt-1">{email}</p>
                     </div>
 
@@ -115,7 +115,7 @@ const ProfileInfo = ({ user, onUpdate }: ProfileInfoProps) => {
                         onClick={() => setIsEditing(true)}
                         className="text-sm text-blue-600 hover:text-blue-500"
                     >
-                        Bilgileri Düzenle
+                        Edit Information
                     </button>
                 </div>
             )}
