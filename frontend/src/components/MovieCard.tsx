@@ -1,4 +1,4 @@
-import { Star, Trash2, Circle, CircleCheckBig } from "lucide-react";
+import { Star, Trash2, Circle, CircleCheckBig, Film, Tv } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { Movie } from '../types/movie';
 
@@ -39,6 +39,12 @@ const MovieCard = ({ movie, onStatusChange, onRemove }: MovieCardProps) => {
             No Image
           </div>
         )}
+        <div className="absolute top-2 left-2 flex gap-2">
+          <div className="bg-black bg-opacity-75 text-white px-2 py-1 rounded-full flex items-center gap-1">
+            {movie.mediaType === 'movie' ? <Film className="w-4 h-4" /> : <Tv className="w-4 h-4" />} </div>
+
+          <div className="bg-black bg-opacity-75 text-white px-2 py-1 rounded-full text-sm">{movie.originalLanguage.toLocaleUpperCase()}</div>
+        </div>
         {movie.voteAverage && (
           <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded-full flex items-center gap-1">
             <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
