@@ -18,7 +18,7 @@ const MovieList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("unwatched");
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(12);
 
   // Initial fetch for filter options
   useEffect(() => {
@@ -78,9 +78,9 @@ const MovieList = () => {
               }}
               className="text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value={10}>10 per page</option>
-              <option value={20}>20 per page</option>
-              <option value={100}>100 per page</option>
+              <option value={10}>12 per page</option>
+              <option value={20}>24 per page</option>
+              <option value={100}>60 per page</option>
             </select>
           </div>
         </div>
