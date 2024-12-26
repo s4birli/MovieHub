@@ -7,7 +7,9 @@ import {
   User,
   Menu as MenuIcon,
   X as CloseIcon,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Plus,
+  Info
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { logout } from "../redux/authSlice";
@@ -39,9 +41,11 @@ const Navbar = ({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [showMobileResults, setShowMobileResults] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const user = useAppSelector((state) => state.auth.user);
   const searchResults = useAppSelector((state) => state.movie.searchResults);
@@ -49,6 +53,7 @@ const Navbar = ({
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -56,11 +61,14 @@ const Navbar = ({
   };
 
   const handleSearch = debounce((value: string) => {
-    if (value.trim() !== "") {
+    setSearchQuery(value);
+    if (value.trim().length >= 3) {
       dispatch(searchMovies(value));
       setShowResults(true);
+      setShowMobileResults(true);
     } else {
       setShowResults(false);
+      setShowMobileResults(false);
     }
   }, 500);
 
@@ -96,15 +104,19 @@ const Navbar = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      if (
+        (searchRef.current && !searchRef.current.contains(event.target as Node)) &&
+        (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node))
+      ) {
         setShowResults(false);
+        setShowMobileResults(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [searchRef]);
+  }, [searchRef, mobileSearchRef]);
 
   const handleAddMovie = async (movie: any) => {
     try {
@@ -216,7 +228,7 @@ const Navbar = ({
                     </div>
                     <input
                       type="text"
-                      placeholder="Film ara..."
+                      placeholder="En az 3 harf girerek film arayın..."
                       onChange={(e) => handleSearch(e.target.value)}
                       className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
@@ -231,7 +243,7 @@ const Navbar = ({
                 </div>
               )}
 
-              {/* Search Results Dropdown */}
+              {/* Desktop Search Results Dropdown */}
               {showResults && searchResults.length > 0 && (
                 <div className="absolute mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-40 mt-10">
                   <ul className="max-h-60 overflow-y-auto">
@@ -248,15 +260,30 @@ const Navbar = ({
                         <div className="flex-1">
                           <p className="text-sm font-medium">{movie.title}</p>
                           <p className="text-xs text-gray-500">
-                            {movie.year} • {movie.genre}
+                            {movie.year} • {movie.mediaType.toUpperCase()}
                           </p>
+                          {movie.genres && movie.genres.length > 0 && (
+                            <p className="text-xs text-gray-500">
+                              {movie.genres.slice(0, 3).join(", ")}
+                            </p>
+                          )}
                         </div>
-                        <button
-                          onClick={() => handleAddMovie(movie)}
-                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                        >
-                          Add to List
-                        </button>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => handleAddMovie(movie)}
+                            className="p-1.5 rounded-full hover:bg-gray-200 text-gray-600"
+                            title="Listeye Ekle"
+                          >
+                            <Plus className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => navigate(`/movie/${movie.tmdbId}`)}
+                            className="p-1.5 rounded-full hover:bg-gray-200 text-gray-600"
+                            title="Detayları Görüntüle"
+                          >
+                            <Info className="h-5 w-5" />
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -332,87 +359,98 @@ const Navbar = ({
                 </div>
                 <input
                   type="text"
-                  placeholder="Search Movies..."
+                  placeholder="Film ara..."
+                  value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
                   className="block w-full pl-10 pr-3 py-2 mb-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
 
+              {/* Mobile Search Results */}
+              {showMobileResults && searchResults.length > 0 && (
+                <div className="bg-white border border-gray-300 rounded-md shadow-lg mt-1">
+                  <ul className="max-h-60 overflow-y-auto">
+                    {searchResults.map((movie: any) => (
+                      <li
+                        key={movie.tmdbId}
+                        className="flex items-center p-2 hover:bg-gray-100"
+                      >
+                        <img
+                          src={movie.posterPath || noImage}
+                          alt={movie.title}
+                          className="w-12 h-16 object-cover rounded-md mr-3"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{movie.title}</p>
+                          <p className="text-xs text-gray-500">
+                            {movie.year} • {movie.mediaType.toUpperCase()}
+                          </p>
+                          {movie.genres && movie.genres.length > 0 && (
+                            <p className="text-xs text-gray-500">
+                              {movie.genres.slice(0, 3).join(", ")}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => handleAddMovie(movie)}
+                            className="p-1.5 rounded-full hover:bg-gray-200 text-gray-600"
+                            title="Listeye Ekle"
+                          >
+                            <Plus className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => navigate(`/movie/${movie.tmdbId}`)}
+                            className="p-1.5 rounded-full hover:bg-gray-200 text-gray-600"
+                            title="Detayları Görüntüle"
+                          >
+                            <Info className="h-5 w-5" />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {/* Mobile Profile Menu */}
-              <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="w-full flex items-center gap-2 px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
-              >
-                <img
-                  src={user?.avatar || noImage}
-                  alt={user?.name || "User"}
-                  className="h-8 w-8 rounded-full object-cover"
-                />
-                <span className="text-sm font-medium">
-                  {user?.name || "Guest"}
-                </span>
-                <ChevronDown className="h-4 w-4 text-gray-500 ml-auto" />
-              </button>
+              <div className="mt-4">
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="w-full flex items-center gap-2 px-4 py-2 text-left text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                  <img
+                    src={user?.avatar || noImage}
+                    alt={user?.name || "User"}
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                  <span className="text-sm font-medium">
+                    {user?.name || "Guest"}
+                  </span>
+                  <ChevronDown className="h-4 w-4 text-gray-500 ml-auto" />
+                </button>
 
-              {/* Mobile Profile Dropdown */}
-              {isProfileOpen && (
-                <div className="px-2 mt-2 space-y-1">
-                  <Link
-                    to="/profile"
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <User className="h-4 w-4" />
-                    Profile
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
-                    role="menuitem"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Logout
-                  </button>
-                </div>
-              )}
-
-              {/* Mobile URL Input */}
-              {showUrlInput && (
-                <div className="px-4 pb-3">
-                  <form onSubmit={handleUrlSubmit} className="space-y-2">
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <LinkIcon className="h-5 w-5 text-gray-400" />
+                {isProfileOpen && (
+                  <div className="mt-2 space-y-1">
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                    >
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Profile
                       </div>
-                      <input
-                        type="url"
-                        value={urlInput}
-                        onChange={(e) => setUrlInput(e.target.value)}
-                        placeholder="Paste movie URL..."
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        disabled={isLoading}
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        type="submit"
-                        className={`flex-1 px-4 py-2 rounded-md text-sm transition-colors flex items-center justify-center gap-2
-                          ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
-                        disabled={isLoading}
-                      >
-                        {isLoading ? 'Processing...' : 'Add'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowUrlInput(false)}
-                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors"
-                        disabled={isLoading}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 rounded-md flex items-center gap-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -423,9 +461,9 @@ const Navbar = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="bg-white p-8 rounded-lg shadow-xl flex flex-col items-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-gray-700 text-xl font-medium">Adding movie...</p>
-            <p className="text-gray-500 text-sm mt-2">Getting information from Instagram</p>
-            <p className="text-gray-500 text-xs mt-1">This may take a moment</p>
+            <p className="text-gray-700 text-xl font-medium">Film ekleniyor...</p>
+            <p className="text-gray-500 text-sm mt-2">Instagram'dan bilgiler alınıyor</p>
+            <p className="text-gray-500 text-xs mt-1">Bu işlem biraz zaman alabilir</p>
           </div>
         </div>
       )}
