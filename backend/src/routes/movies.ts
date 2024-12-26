@@ -29,12 +29,7 @@ const searchMovies: SearchRequestHandler = async (req, res) => {
             return;
         }
 
-        const response = await axios.get<TMDBResponse>(`https://api.themoviedb.org/3/search/multi`, {
-            params: {
-                query,
-                api_key: process.env.MOVIE_DB_API_KEY
-            }
-        });
+        const response = await axios.get<TMDBResponse>(`https://api.themoviedb.org/3/search/multi?query=${query}&api_key=${process.env.MOVIE_DB_API_KEY}`);
 
         const results = response.data.results || [];
 
