@@ -8,33 +8,36 @@ import DefaultRoute from "./components/DefaultRoute";
 import Profile from './pages/Profile';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        <Route
-          path="/movies"
-          element={
-            <PrivateRoute>
-              <MovieList />
-            </PrivateRoute>
-          }
-        />
-        <Route path="/movie/:id" element={<PrivateRoute><MovieDetail /></PrivateRoute>} />
+          <Route
+            path="/movies"
+            element={
+              <PrivateRoute>
+                <MovieList />
+              </PrivateRoute>
+            }
+          />
+          <Route path="/movie/:id" element={<PrivateRoute><MovieDetail /></PrivateRoute>} />
 
-        <Route path="/" element={<DefaultRoute />} />
+          <Route path="/" element={<DefaultRoute />} />
 
-        <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
 
-        {/* Catch-all Route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      <ToastContainer />
-    </Router>
+          {/* Catch-all Route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <ToastContainer />
+      </Router>
+    </AuthProvider>
   );
 }
 

@@ -2,22 +2,7 @@
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "../api/axiosConfig";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string | null;
-}
-
-interface AuthState {
-  user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-  isAuthenticated: boolean;
-  loading: boolean;
-  error: string | null;
-}
+import { AuthState } from "../models/AuthState";
 
 // Get initial state from localStorage with proper type checking
 const getInitialState = (): AuthState => {
