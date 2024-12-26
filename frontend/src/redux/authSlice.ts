@@ -19,21 +19,34 @@ interface AuthState {
   error: string | null;
 }
 
+// Get initial state from localStorage with proper type checking
+const getInitialState = (): AuthState => {
+  try {
+    const storedUser = localStorage.getItem('user');
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    return {
+      user: storedUser ? JSON.parse(storedUser) : null,
+      accessToken: accessToken || null,
+      refreshToken: refreshToken || null,
+      isAuthenticated: !!accessToken,
+      loading: false,
+      error: null
+    };
+  } catch (error) {
+    console.error('Error parsing stored user:', error);
+    return initialState;
+  }
+};
+
 const initialState: AuthState = {
-  user: localStorage.getItem("user")
-    ? JSON.parse(localStorage.getItem("user")!)
-    : null,
-  accessToken:
-    localStorage.getItem("accessToken") ||
-    sessionStorage.getItem("accessToken"),
-  refreshToken:
-    localStorage.getItem("refreshToken") ||
-    sessionStorage.getItem("refreshToken"),
-  isAuthenticated: !!(
-    localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken")
-  ),
+  user: null,
+  accessToken: null,
+  refreshToken: null,
+  isAuthenticated: false,
   loading: false,
-  error: null,
+  error: null
 };
 
 // Async actions
@@ -51,13 +64,15 @@ export const registerUser = createAsyncThunk(
 
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
-  async (
-    credentials: { email: string; password: string; rememberMe: boolean },
-    { rejectWithValue }
-  ) => {
+  async (credentials: { email: string; password: string; rememberMe: boolean }, { rejectWithValue }) => {
     try {
-
       const response = await axios.post("/api/users", credentials);
+
+      // Store user data in localStorage
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('accessToken', response.data.accessToken);
+      localStorage.setItem('refreshToken', response.data.refreshToken);
+
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response.data.msg || "Login failed");
@@ -81,22 +96,37 @@ export const refreshToken = createAsyncThunk(
   }
 );
 
+export const updateProfile = createAsyncThunk(
+  "auth/updateProfile",
+  async (formData: FormData) => {
+    const response = await axios.put("/api/users/profile", formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  }
+);
+
+export const updatePassword = createAsyncThunk(
+  "auth/updatePassword",
+  async (data: { currentPassword: string; newPassword: string }) => {
+    const response = await axios.put("/api/users/password", data);
+    return response.data;
+  }
+);
+
 // Slice
 const authSlice = createSlice({
   name: "auth",
-  initialState,
+  initialState: getInitialState(), // Use getInitialState instead of initialState
   reducers: {
     logout(state) {
       state.user = null;
       state.accessToken = null;
       state.refreshToken = null;
       state.isAuthenticated = false;
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
-      sessionStorage.removeItem("accessToken");
-      sessionStorage.removeItem("refreshToken");
-      sessionStorage.removeItem("user");
+      localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
     },
     setCredentials(state, action) {
       const { accessToken, refreshToken } = action.payload;
@@ -137,23 +167,10 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload.user; // Store user details
+        state.user = action.payload.user;
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
-
-        const rememberMe = action.meta.arg.rememberMe;
-
-        // Store tokens and user based on rememberMe
-        if (rememberMe) {
-          localStorage.setItem("accessToken", state.accessToken!);
-          localStorage.setItem("refreshToken", state.refreshToken!);
-          localStorage.setItem("user", JSON.stringify(state.user));
-        } else {
-          sessionStorage.setItem("accessToken", state.accessToken!);
-          sessionStorage.setItem("refreshToken", state.refreshToken!);
-          sessionStorage.setItem("user", JSON.stringify(state.user));
-        }
+        state.isAuthenticated = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -172,6 +189,13 @@ const authSlice = createSlice({
       })
       .addCase(refreshToken.rejected, (state, action) => {
         state.error = action.payload as string;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
+      })
+      .addCase(updatePassword.fulfilled, (state) => {
+        // Password updated successfully, no need to update state
       });
   },
 });

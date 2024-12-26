@@ -154,6 +154,19 @@ export const fetchMovieDetails = createAsyncThunk(
   }
 );
 
+// Instagram'dan film ekleme action'ı
+export const addMovieFromInstagram = createAsyncThunk(
+  'movies/addFromInstagram',
+  async (url: string, { rejectWithValue }) => {
+    try {
+      const response = await axios.post('/api/movies/from-instagram', { url });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Film eklenirken bir hata oluştu');
+    }
+  }
+);
+
 // Slice
 const movieSlice = createSlice({
   name: "movie",
@@ -260,6 +273,19 @@ const movieSlice = createSlice({
       .addCase(fetchMovieDetails.rejected, (state, action) => {
         state.currentMovieLoading = false;
         state.currentMovieError = action.error.message || "Film detayları alınamadı";
+      })
+      // Instagram'dan film ekleme case'leri
+      .addCase(addMovieFromInstagram.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addMovieFromInstagram.fulfilled, (state, action) => {
+        state.loading = false;
+        state.movies = [...state.movies, action.payload];
+      })
+      .addCase(addMovieFromInstagram.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });

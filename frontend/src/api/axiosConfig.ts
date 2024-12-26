@@ -2,7 +2,6 @@ import axios from "axios";
 import store from "../redux/store";
 import { refreshToken, logout } from "../redux/authSlice";
 
-
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
 });
@@ -10,7 +9,9 @@ const axiosInstance = axios.create({
 // Request interceptor to add auth token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = sessionStorage.getItem("accessToken");
+    const state = store.getState();
+    const token = state.auth.accessToken;
+
     if (token) {
       config.headers["x-auth-token"] = token;
     }
@@ -19,23 +20,28 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-axiosInstance.interceptors.response.use((response) => response,
+axiosInstance.interceptors.response.use(
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
     const status = error.response ? error.response.status : null;
+
     if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        await store.dispatch(refreshToken());
         const state = store.getState();
-        const newToken = state.auth.accessToken;
-        axios.defaults.headers.common["x-auth-token"] = newToken;
-        return axiosInstance(originalRequest);
+        if (state.auth.refreshToken) {
+          await store.dispatch(refreshToken());
+          const newToken = state.auth.accessToken;
+          originalRequest.headers["x-auth-token"] = newToken;
+          return axiosInstance(originalRequest);
+        }
       } catch (err) {
         store.dispatch(logout());
         return Promise.reject(err);
       }
     }
+    return Promise.reject(error);
   }
 );
 

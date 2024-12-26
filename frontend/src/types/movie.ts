@@ -13,7 +13,7 @@ export interface Movie {
     trailer?: string | null;
     availableOnNetflix?: boolean;
     runtime?: number;
-    originalLanguage?: string;
+    originalLanguage: string;
     productionCountries?: string[];
     providers?: {
         [key: string]: {
