@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { fetchMovies, fetchFilterOptions, updateMovieStatus, deleteMovie, addMovie } from "../redux/movieSlice";
+import { fetchMovies, fetchFilterOptions, updateMovieStatus, deleteMovie } from "../redux/movieSlice";
 import MovieCard from "../components/MovieCard";
 import Sidebar from "../components/Sidebar";
 import { Menu } from "lucide-react";
@@ -13,8 +13,8 @@ const MovieList = () => {
   const { movies, pagination, filterOptions } = useAppSelector((state) => state.movie);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [sortBy, setSortBy] = useState("title");
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortBy, setSortBy] = useState("rating");
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -92,18 +92,6 @@ const MovieList = () => {
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to remove movie');
-    }
-  };
-
-  const handleAddMovie = async (movieData: any) => {
-    try {
-      const result = await dispatch(addMovie(movieData)).unwrap();
-      if (result) {
-        toast.success(`"${movieData.title}" has been added to your list`);
-        // Liste otomatik olarak güncellenecek
-      }
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to add movie');
     }
   };
 

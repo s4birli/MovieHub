@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Camera } from 'lucide-react';
 import noImage from '../../assets/images/no-image.png';
 
@@ -9,10 +9,24 @@ interface AvatarUploadProps {
 
 const AvatarUpload = ({ currentAvatar, onUpdate }: AvatarUploadProps) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [previewAvatar, setPreviewAvatar] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (currentAvatar) {
+            setPreviewAvatar(currentAvatar);
+        } else {
+            setPreviewAvatar(null);
+        }
+    }, [currentAvatar]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                setPreviewAvatar(reader.result as string);
+            };
+            reader.readAsDataURL(file);
             onUpdate(file);
         }
     };
@@ -21,7 +35,7 @@ const AvatarUpload = ({ currentAvatar, onUpdate }: AvatarUploadProps) => {
         <div className="flex flex-col items-center gap-4">
             <div className="relative">
                 <img
-                    src={currentAvatar || noImage}
+                    src={previewAvatar || noImage}
                     alt="Profile"
                     className="w-32 h-32 rounded-full object-cover"
                 />

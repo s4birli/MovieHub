@@ -30,7 +30,8 @@ const upload = multer({
 });
 
 // Helper function to convert Buffer to base64
-const bufferToBase64 = (buffer: Buffer, contentType: string) => {
+const bufferToBase64 = (buffer: Buffer | undefined, contentType: string | undefined) => {
+    if (!buffer || !contentType) return null;
     return `data:${contentType};base64,${buffer.toString('base64')}`;
 };
 
@@ -78,7 +79,7 @@ router.post(
                     id: user.id,
                     name: user.name,
                     email: user.email,
-                    avatar: user.avatar
+                    avatar: user.avatar?.data && user.avatar?.contentType
                         ? bufferToBase64(user.avatar.data, user.avatar.contentType)
                         : null,
                 },
@@ -147,7 +148,7 @@ router.post(
                     id: user.id,
                     name: user.name,
                     email: user.email,
-                    avatar: user.avatar
+                    avatar: user.avatar?.data && user.avatar?.contentType
                         ? bufferToBase64(user.avatar.data, user.avatar.contentType)
                         : null,
                 },
@@ -334,7 +335,7 @@ router.put(
                     id: user.id,
                     name: user.name,
                     email: user.email,
-                    avatar: user.avatar
+                    avatar: user.avatar?.data && user.avatar?.contentType
                         ? bufferToBase64(user.avatar.data, user.avatar.contentType)
                         : null,
                 }

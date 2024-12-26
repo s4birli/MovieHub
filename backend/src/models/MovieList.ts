@@ -53,7 +53,6 @@ const MovieListSchema = new mongoose.Schema({
     }
 });
 
-// Aynı kullanıcı için aynı tmdbId'ye sahip film/dizi eklenemez
 MovieListSchema.index({ user: 1, tmdbId: 1 }, { unique: true });
 
 export default mongoose.model('MovieList', MovieListSchema, "MovieList"); 

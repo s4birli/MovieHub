@@ -73,8 +73,8 @@ const getMovieList: CustomRequestHandler = async (req, res) => {
             genres,
             mediaType,
             status,
-            sortBy = 'title',
-            sortOrder = 'asc'
+            sortBy = 'rating',
+            sortOrder = 'desc'
         } = req.query as unknown as MovieListQuery;
 
         // Temel sorgu
@@ -106,7 +106,7 @@ const getMovieList: CustomRequestHandler = async (req, res) => {
 
         // Sayfalama ve sıralama ile verileri getir
         const movies = await MovieList.find(query)
-            .sort(sortOptions[sortBy] || sortOptions.title)
+            .sort(sortOptions[sortBy] || sortOptions.rating)
             .skip((page - 1) * limit)
             .limit(limit);
 

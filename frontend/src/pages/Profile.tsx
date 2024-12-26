@@ -12,16 +12,9 @@ const Profile = () => {
 
     if (!user) return null;
 
-    const handleUpdateProfile = async (data: { name: string; email: string; avatar?: File }) => {
+    const handleUpdateProfile = async (data: { name: string; email: string; formData: FormData }) => {
         try {
-            const formData = new FormData();
-            formData.append('name', data.name);
-            formData.append('email', data.email);
-            if (data.avatar) {
-                formData.append('avatar', data.avatar);
-            }
-
-            await dispatch(updateProfile(formData)).unwrap();
+            await dispatch(updateProfile(data.formData)).unwrap();
             toast.success('Profile updated successfully');
         } catch (error) {
             toast.error('Failed to update profile');
@@ -39,7 +32,15 @@ const Profile = () => {
 
     return (
         <div>
-            <Navbar currentPage={0} pageSize={0} selectedGenres={[]} selectedCategory={''} selectedStatus={''} sortBy={''} sortOrder={'asc'} />
+            <Navbar
+                currentPage={0}
+                pageSize={0}
+                selectedGenres={[]}
+                selectedCategory={''}
+                selectedStatus={''}
+                sortBy={'rating'}
+                sortOrder={'desc'}
+            />
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <h1 className="text-2xl font-bold text-gray-900 mb-8">Profile Settings</h1>
 

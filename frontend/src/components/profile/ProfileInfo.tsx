@@ -8,24 +8,31 @@ interface ProfileInfoProps {
         email: string;
         avatar: string | null;
     };
-    onUpdate: (data: { name: string; email: string; avatar?: File }) => void;
+    onUpdate: (data: { name: string; email: string; formData: FormData }) => void;
 }
 
 const ProfileInfo = ({ user, onUpdate }: ProfileInfoProps) => {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(user.name);
     const [email, setEmail] = useState(user.email);
-    const [avatar, setAvatar] = useState<File | null>(null);
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        if (avatarFile) {
+            formData.append('avatar', avatarFile);
+        }
+
         onUpdate({
             name,
             email,
-            ...(avatar && { avatar })
+            formData
         });
         setIsEditing(false);
-        setAvatar(null);
+        setAvatarFile(null);
     };
 
     return (
@@ -35,7 +42,7 @@ const ProfileInfo = ({ user, onUpdate }: ProfileInfoProps) => {
             <div className="flex flex-col items-center mb-6">
                 <AvatarUpload
                     currentAvatar={user.avatar}
-                    onUpdate={(file) => setAvatar(file)}
+                    onUpdate={(file: File) => setAvatarFile(file)}
                 />
             </div>
 
@@ -86,7 +93,7 @@ const ProfileInfo = ({ user, onUpdate }: ProfileInfoProps) => {
                                 setIsEditing(false);
                                 setName(user.name);
                                 setEmail(user.email);
-                                setAvatar(null);
+                                setAvatarFile(null);
                             }}
                             className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
                         >
