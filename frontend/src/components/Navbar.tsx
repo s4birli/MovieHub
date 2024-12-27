@@ -46,6 +46,7 @@ const Navbar = ({
   const [urlInput, setUrlInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
 
   const user = useAppSelector((state) => state.auth.user);
   const searchResults = useAppSelector((state) => state.movie.searchResults);
@@ -60,12 +61,17 @@ const Navbar = ({
     navigate("/login");
   };
 
-  const handleSearch = debounce((value: string) => {
+  const handleSearch = debounce(async (value: string) => {
     setSearchQuery(value);
     if (value.trim().length >= 3) {
-      dispatch(searchMovies(value));
-      setShowResults(true);
-      setShowMobileResults(true);
+      setIsSearchLoading(true);
+      try {
+        await dispatch(searchMovies(value));
+        setShowResults(true);
+        setShowMobileResults(true);
+      } finally {
+        setIsSearchLoading(false);
+      }
     } else {
       setShowResults(false);
       setShowMobileResults(false);
@@ -228,7 +234,11 @@ const Navbar = ({
                 <div className="flex gap-2 w-full">
                   <div className="relative flex-1">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Search className="h-5 w-5 text-gray-400" />
+                      {isSearchLoading ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400" />
+                      ) : (
+                        <Search className="h-5 w-5 text-gray-400" />
+                      )}
                     </div>
                     <input
                       type="text"
@@ -356,7 +366,11 @@ const Navbar = ({
               {/* Mobile Search Bar */}
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
+                  {isSearchLoading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400" />
+                  ) : (
+                    <Search className="h-5 w-5 text-gray-400" />
+                  )}
                 </div>
                 <input
                   type="text"
