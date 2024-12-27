@@ -14,6 +14,7 @@ import {
 import { MovieListQuery, CustomRequestHandler } from "../models/types";
 import puppeteer from 'puppeteer';
 import OpenAI from 'openai';
+import { InstagramData } from "../models/InstagramModel";
 
 // SearchRequestHandler tipini güncelle
 type SearchRequestHandler = CustomRequestHandler<any, any, any, { query?: string }>;
@@ -430,46 +431,52 @@ async function getMovieDetailsFromGPT(comment: string) {
 }
 
 async function scrapeInstagramComment(url: string) {
-    const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
     try {
-        const page = await browser.newPage();
-        // Set a custom User-Agent to mimic a real browser
-        await page.setUserAgent(
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
-        );
+        // Remove @ if exists at the start
+        const cleanUrl = url.startsWith('@') ? url.substring(1) : url;
 
-        await page.goto(url, { waitUntil: 'networkidle2' });
+        // Try different regex patterns to extract the code
+        const patterns = [
+            /\/reel\/([A-Za-z0-9_-]+)/, // matches /reel/CODE
+            /\/p\/([A-Za-z0-9_-]+)/, // matches /p/CODE
+            /([A-Za-z0-9_-]{11})\/?(?:\?|$)/ // matches CODE directly or with query params
+        ];
 
-        // Wait for the meta tag containing Open Graph data
-        await page.waitForSelector('meta[property="og:description"]', { timeout: 10000 });
-
-        // Extract the content of the meta tag
-        const ogDescription = await page.$eval(
-            'meta[property="og:description"]',
-            (meta) => meta.getAttribute('content')?.trim()
-        );
-
-        if (!ogDescription) {
-            throw new Error('Could not find Open Graph description');
+        let code = null;
+        for (const pattern of patterns) {
+            const match = cleanUrl.match(pattern);
+            if (match && match[1]) {
+                code = match[1];
+                break;
+            }
         }
 
-        // Parse the first comment dynamically
-        const commentMatch = ogDescription.match(/:\s*"([^"]+)"/);
-        const firstComment = commentMatch ? commentMatch[1] : null;
-
-        if (!firstComment) {
-            throw new Error('No comment found in Open Graph description');
+        if (!code) {
+            throw new Error('Invalid Instagram URL. Could not extract post code.');
         }
 
-        return firstComment;
+        const options = {
+            method: 'GET',
+            url: 'https://instagram-scraper-api2.p.rapidapi.com/v1/post_info',
+            params: {
+                code_or_id_or_url: code
+            },
+            headers: {
+                'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+                'x-rapidapi-host': 'instagram-scraper-api2.p.rapidapi.com'
+            }
+        };
+
+        const response = await axios.request<InstagramData>(options);
+
+        if (!response.data?.data?.caption?.text) {
+            throw new Error('No caption found in the Instagram post');
+        }
+        return response.data.data.caption.text;
+
     } catch (error) {
-        console.error('Instagram scraping error:', error);
-        throw new Error('Could not scrape Instagram comment');
-    } finally {
-        await browser.close();
+        console.error('Instagram API error:', error);
+        throw new Error('Could not fetch Instagram post data');
     }
 }
 
@@ -505,6 +512,7 @@ const getInstagramMovie: CustomRequestHandler = async (req, res) => {
         // 2. Get movie details from ChatGPT
         try {
             const movieDetails = await getMovieDetailsFromGPT(comment);
+            console.log(movieDetails);
             if (!movieDetails) {
                 return res.status(400).json({ message: "Could not get movie details" });
             }
