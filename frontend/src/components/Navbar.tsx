@@ -103,7 +103,7 @@ const Navbar = ({
         setUrlInput('');
         setShowUrlInput(false);
       } catch (error: any) {
-        toast.error(error.message || 'Error adding movie');
+        toast.error(error || 'Error adding movie');
       } finally {
         setIsLoading(false);
       }
@@ -369,22 +369,77 @@ const Navbar = ({
           <div className="md:hidden">
             <div className="px-4 pt-2 pb-3 space-y-1 sm:px-3">
               {/* Mobile Search Bar */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  {isSearchLoading ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400" />
-                  ) : (
-                    <Search className="h-5 w-5 text-gray-400" />
-                  )}
+              {showUrlInput ? (
+                <form onSubmit={handleUrlSubmit} className="flex flex-col gap-2">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <LinkIcon className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="url"
+                      value={urlInput}
+                      onChange={(e) => setUrlInput(e.target.value)}
+                      placeholder="Paste movie URL..."
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className={`flex-1 px-4 py-2 rounded-md text-sm transition-colors flex items-center justify-center gap-2
+                        ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span>Working...</span>
+                        </>
+                      ) : (
+                        <span>Add</span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowUrlInput(false)}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors"
+                      disabled={isLoading}
+                    >
+                      İptal
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      {isSearchLoading ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400" />
+                      ) : (
+                        <Search className="h-5 w-5 text-gray-400" />
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      className="block w-full pl-10 pr-3 py-2 mb-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                  <button
+                    onClick={() => setShowUrlInput(true)}
+                    className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <LinkIcon className="h-4 w-4" />
+                    Add URL
+                  </button>
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 mb-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-              </div>
+              )}
 
               {/* Mobile Search Results */}
               {showMobileResults && searchResults.length > 0 && (
@@ -478,9 +533,9 @@ const Navbar = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="bg-white p-8 rounded-lg shadow-xl flex flex-col items-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-gray-700 text-xl font-medium">Film ekleniyor...</p>
-            <p className="text-gray-500 text-sm mt-2">Instagram'dan bilgiler alınıyor</p>
-            <p className="text-gray-500 text-xs mt-1">Bu işlem biraz zaman alabilir</p>
+            <p className="text-gray-700 text-xl font-medium">Adding movie...</p>
+            <p className="text-gray-500 text-sm mt-2">Fetching information from Instagram</p>
+            <p className="text-gray-500 text-xs mt-1">This may take a while</p>
           </div>
         </div>
       )}

@@ -121,8 +121,8 @@ const getMovieList: CustomRequestHandler = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error("Film listesi getirme hatası:", error);
-        res.status(500).json({ message: "Film listesi getirilirken hata oluştu" });
+        console.error("Error getting movie list:", error);
+        res.status(500).json({ message: "Error occurred while getting movie list" });
     }
 };
 
@@ -143,19 +143,19 @@ const addMovie: CustomRequestHandler = async (req, res) => {
         const requiredFields = ['tmdbId', 'title', 'mediaType'];
         for (const field of requiredFields) {
             if (!movieData[field]) {
-                return res.status(400).json({ message: `${field} alanı zorunludur` });
+                return res.status(400).json({ message: `${field} field is required` });
             }
         }
 
         // Geçerli mediaType kontrolü
         if (!['movie', 'tv'].includes(movieData.mediaType)) {
-            return res.status(400).json({ message: "Geçersiz mediaType değeri" });
+            return res.status(400).json({ message: "Invalid mediaType value." });
         }
 
         if (existingMovie) {
             if (existingMovie.isActive) {
                 // Film zaten aktif olarak listede
-                return res.status(400).json({ message: "Bu film zaten listenizde mevcut" });
+                return res.status(400).json({ message: "This movie is already in your list." });
             } else {
                 // Film listede ama inactive, aktif hale getir
                 existingMovie.isActive = true;
@@ -177,8 +177,8 @@ const addMovie: CustomRequestHandler = async (req, res) => {
         await movie.save();
         res.status(201).json(movie);
     } catch (error) {
-        console.error("Film ekleme hatası:", error);
-        res.status(500).json({ message: "Film eklenirken hata oluştu" });
+        console.error("Error adding movie:", error);
+        res.status(500).json({ message: "Error occurred while adding movie" });
     }
 };
 
@@ -197,7 +197,7 @@ const updateMovie: CustomRequestHandler = async (req, res) => {
 
         // Status değerinin geçerliliğini kontrol et
         if (updates.status && !['watched', 'unwatched'].includes(updates.status)) {
-            res.status(400).json({ message: "Geçersiz status değeri" });
+            res.status(400).json({ message: "Invalid status value" });
             return;
         }
 
@@ -211,14 +211,14 @@ const updateMovie: CustomRequestHandler = async (req, res) => {
         );
 
         if (!movie) {
-            res.status(404).json({ message: "Film bulunamadı" });
+            res.status(404).json({ message: "Movie not found" });
             return;
         }
 
         res.json(movie);
     } catch (error) {
-        console.error("Film güncelleme hatası:", error);
-        res.status(500).json({ message: "Film güncellenirken hata oluştu" });
+        console.error("Error updating movie:", error);
+        res.status(500).json({ message: "Error occurred while updating movie" });
     }
 };
 
@@ -231,13 +231,13 @@ const removeMovie: CustomRequestHandler = async (req, res) => {
         );
 
         if (!movie) {
-            res.status(404).json({ message: "Film bulunamadı" });
+            res.status(404).json({ message: "Movie not found" });
             return;
         }
 
-        res.json({ message: "Film başarıyla kaldırıldı" });
+        res.json({ message: "Movie successfully removed" });
     } catch (error) {
-        res.status(500).json({ message: "Film kaldırılırken hata oluştu" });
+        res.status(500).json({ message: "Error occurred while removing movie" });
     }
 };
 
@@ -276,16 +276,16 @@ const getMovieDetails: CustomRequestHandler = async (req, res) => {
         const { id, type } = req.params;
 
         if (!id || !type) {
-            return res.status(400).json({ message: "ID ve type parametreleri gereklidir" });
+            return res.status(400).json({ message: "ID and type parameters are required" });
         }
 
         if (!['movie', 'tv'].includes(type)) {
-            return res.status(400).json({ message: "Geçersiz medya tipi" });
+            return res.status(400).json({ message: "Invalid media type" });
         }
 
         const API_KEY = process.env.MOVIE_DB_API_KEY;
         if (!API_KEY) {
-            return res.status(500).json({ message: "API anahtarı bulunamadı" });
+            return res.status(500).json({ message: "API key not found" });
         }
 
         const userMovie = await MovieList.findOne({
@@ -370,8 +370,8 @@ const getMovieDetails: CustomRequestHandler = async (req, res) => {
 
         res.json(movieDetails);
     } catch (error) {
-        console.error("Film detayları getirme hatası:", error);
-        res.status(500).json({ message: "Film detayları getirilirken hata oluştu" });
+        console.error("Movie details fetch error:", error);
+        res.status(500).json({ message: "An error occurred while fetching movie details." });
     }
 };
 
@@ -502,21 +502,18 @@ const getInstagramMovie: CustomRequestHandler = async (req, res) => {
         if (!comment) {
             return res.status(400).json({ message: "No comment found" });
         }
-
         // 2. Get movie details from ChatGPT
         try {
             const movieDetails = await getMovieDetailsFromGPT(comment);
             if (!movieDetails) {
                 return res.status(400).json({ message: "Could not get movie details" });
             }
-
             // 3. Search for the movie in TMDB
             const tmdbMovie = await searchMovieInTMDB(
                 movieDetails.title,
                 movieDetails.year,
                 movieDetails.category
             );
-
             // 4. Add the movie to the list
             const movieData = {
                 tmdbId: tmdbMovie.id,
@@ -545,19 +542,21 @@ const getInstagramMovie: CustomRequestHandler = async (req, res) => {
             const requiredFields = ['tmdbId', 'title', 'mediaType'];
             for (const field of requiredFields) {
                 if (!movieData[field as keyof typeof movieData]) {
-                    return res.status(400).json({ message: `${field} alanı zorunludur` });
+                    return res.status(400).json({ message: `${field} field is required` });
                 }
             }
 
             // Check valid mediaType
             if (!['movie', 'tv'].includes(movieData.mediaType)) {
-                return res.status(400).json({ message: "Geçersiz mediaType değeri" });
+                return res.status(400).json({ message: "Invalid mediaType value." });
             }
 
             if (existingMovie) {
                 if (existingMovie.isActive) {
-                    // Film already exists in the list
-                    return res.status(400).json({ message: "Bu film zaten listenizde mevcut" });
+                    // Return error with movie title
+                    return res.status(400).json({
+                        message: `"${movieDetails.title}" is already in your list.`
+                    });
                 } else {
                     // Film is inactive, activate it
                     existingMovie.isActive = true;
@@ -579,7 +578,6 @@ const getInstagramMovie: CustomRequestHandler = async (req, res) => {
             await movie.save();
             res.status(201).json(movie);
         } catch (gptError: any) {
-            // Show GPT error directly
             return res.status(400).json({
                 message: gptError.message
             });
