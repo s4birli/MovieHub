@@ -10,7 +10,7 @@ import { toast } from "react-hot-toast";
 
 const MovieList = () => {
   const dispatch = useAppDispatch();
-  const { movies, pagination, filterOptions } = useAppSelector((state) => state.movie);
+  const { movies, pagination, filterOptions, loading } = useAppSelector((state) => state.movie);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [sortBy, setSortBy] = useState("rating");
@@ -192,64 +192,73 @@ const MovieList = () => {
           )}
 
           <div className="lg:w-3/4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {movies.map((movie: Movie) => {
-                return (
-                  <MovieCard
-                    key={`movie-${movie.tmdbId}`}
-                    movie={movie}
-                    onStatusChange={(status) => handleStatusChange(movie.tmdbId, status)}
-                    onRemove={() => handleRemove(movie.tmdbId)}
-                  />
-                );
-              })}
-            </div>
-
-            {movies.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500">No movies found.</p>
+            {loading ? (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                  <p className="text-gray-500 text-sm">Loading movies...</p>
+                </div>
               </div>
-            )}
-
-            {pagination && pagination.totalPages > 1 && (
-              <div className="mt-6 flex justify-center">
-                <nav className="flex gap-2">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded ${currentPage === 1
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white hover:bg-gray-100"
-                      }`}
-                  >
-                    Previous
-                  </button>
-
-                  {Array.from({ length: pagination.totalPages }, (_, i) => (
-                    <button
-                      key={`page-${i + 1}`}
-                      onClick={() => setCurrentPage(i + 1)}
-                      className={`px-3 py-1 rounded ${currentPage === i + 1
-                        ? "bg-blue-600 text-white"
-                        : "bg-white hover:bg-gray-100"
-                        }`}
-                    >
-                      {i + 1}
-                    </button>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {movies.map((movie: Movie) => (
+                    <MovieCard
+                      key={`movie-${movie.tmdbId}`}
+                      movie={movie}
+                      onStatusChange={(status) => handleStatusChange(movie.tmdbId, status)}
+                      onRemove={() => handleRemove(movie.tmdbId)}
+                    />
                   ))}
+                </div>
 
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
-                    disabled={currentPage === pagination.totalPages}
-                    className={`px-3 py-1 rounded ${currentPage === pagination.totalPages
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white hover:bg-gray-100"
-                      }`}
-                  >
-                    Next
-                  </button>
-                </nav>
-              </div>
+                {movies.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">No movies found.</p>
+                  </div>
+                )}
+
+                {pagination && pagination.totalPages > 1 && (
+                  <div className="mt-6 flex justify-center">
+                    <nav className="flex gap-2">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className={`px-3 py-1 rounded ${currentPage === 1
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white hover:bg-gray-100"
+                          }`}
+                      >
+                        Previous
+                      </button>
+
+                      {Array.from({ length: pagination.totalPages }, (_, i) => (
+                        <button
+                          key={`page-${i + 1}`}
+                          onClick={() => setCurrentPage(i + 1)}
+                          className={`px-3 py-1 rounded ${currentPage === i + 1
+                            ? "bg-blue-600 text-white"
+                            : "bg-white hover:bg-gray-100"
+                            }`}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
+                        disabled={currentPage === pagination.totalPages}
+                        className={`px-3 py-1 rounded ${currentPage === pagination.totalPages
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white hover:bg-gray-100"
+                          }`}
+                      >
+                        Next
+                      </button>
+                    </nav>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
