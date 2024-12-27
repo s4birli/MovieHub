@@ -62,7 +62,7 @@ const getMovieList: CustomRequestHandler = async (req, res) => {
     try {
         const {
             page = 1,
-            limit = 12,
+            limit = 60,
             genres,
             mediaType,
             status,

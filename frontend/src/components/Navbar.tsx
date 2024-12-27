@@ -9,7 +9,6 @@ import {
   X as CloseIcon,
   Link as LinkIcon,
   Plus,
-  Info
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { logout } from "../redux/authSlice";
@@ -27,6 +26,7 @@ interface NavbarProps {
   selectedStatus: string;
   sortBy: string;
   sortOrder: 'asc' | 'desc';
+  search: string;
 }
 
 const Navbar = ({
@@ -36,7 +36,8 @@ const Navbar = ({
   selectedCategory,
   selectedStatus,
   sortBy,
-  sortOrder
+  sortOrder,
+  search
 }: NavbarProps) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -76,7 +77,7 @@ const Navbar = ({
       setShowResults(false);
       setShowMobileResults(false);
     }
-  }, 500);
+  });
 
   const handleUrlSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,7 +96,8 @@ const Navbar = ({
             mediaType: selectedCategory,
             status: selectedStatus || undefined,
             sortBy,
-            sortOrder
+            sortOrder,
+            search: search
           }));
         }
         setUrlInput('');
@@ -155,10 +157,13 @@ const Navbar = ({
           mediaType: selectedCategory,
           status: selectedStatus || undefined,
           sortBy,
-          sortOrder
+          sortOrder,
+          search: search
         }));
       }
+      setSearchQuery("");
       setShowResults(false);
+      setShowMobileResults(false);
     } catch (error: any) {
       toast.error(error.message || 'Failed to add movie');
     }

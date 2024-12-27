@@ -19,7 +19,7 @@ const MovieList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("unwatched");
-  const [pageSize, setPageSize] = useState(12);
+  const [pageSize, setPageSize] = useState(60);
 
   // Initial fetch for filter options
   useEffect(() => {
@@ -108,6 +108,7 @@ const MovieList = () => {
         selectedStatus={selectedStatus}
         sortBy={sortBy}
         sortOrder={sortOrder}
+        search={searchQuery}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex justify-between items-center mb-8">
@@ -128,9 +129,9 @@ const MovieList = () => {
               }}
               className="text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value={12}>12 per page</option>
-              <option value={24}>24 per page</option>
               <option value={60}>60 per page</option>
+              <option value={120}>120 per page</option>
+              <option value={180}>180 per page</option>
             </select>
           </div>
         </div>
